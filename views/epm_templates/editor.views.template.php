@@ -231,7 +231,7 @@
                                                             <i class="fa fa-question-circle fpbx-help-icon" data-for="<?php echo $srow['key']; ?>"></i>
                                                         </div>
                                                         <div class="col-md-9">
-															<input type="text" class="form-control" id="<?php echo $srow['key']; ?>" name="<?php echo $srow['key']; ?>" placeholder="" value="<?php echo $srow['value']; ?>" size="<?php echo (isset($srow['max_chars']) ? $srow['max_chars'] : "90" ); ?>">
+															<input type="text" class="form-control" id="<?php echo $srow['key']; ?>" name="<?php echo $srow['key']; ?>" placeholder="" value="<?php echo $srow['value']; ?>" size="<?php echo ($srow['max_chars'] ?? "90" ); ?>">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -265,7 +265,7 @@
                                                             <i class="fa fa-question-circle fpbx-help-icon" data-for="<?php echo $srow['key']; ?>"></i>
                                                         </div>
                                                         <div class="col-md-9">
-	                      									<textarea class="form-control" id="<?php echo $srow['key']; ?>" name="<?php echo $srow['key']; ?>" rows="<?php echo (isset($srow['rows']) ? $srow['rows'] : "2" ); ?>" cols="<?php echo (isset($srow['cols']) ? $srow['cols'] : "20" ); ?>"><?php echo $srow['value']; ?></textarea>
+	                      									<textarea class="form-control" id="<?php echo $srow['key']; ?>" name="<?php echo $srow['key']; ?>" rows="<?php echo ($srow['rows'] ?? "2" ); ?>" cols="<?php echo ($srow['cols'] ?? "20" ); ?>"><?php echo $srow['value']; ?></textarea>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -481,7 +481,7 @@
 											<div class="row">
 												<div class="form-group">
 													<div class="col-md-12">
-														<?php echo '<label><input type="checkbox" name="ari_'.$srow['ari']['key'].'" '.(isset($srow['ari']['checked']) ? $srow['ari']['checked'] : '' ).' >End User Editable (<a href="http://projects.colsolgrp.net/documents/29" target="_blank">Through ARI Module</a>)</label>'; ?>
+														<?php echo '<label><input type="checkbox" name="ari_'.$srow['ari']['key'].'" '.($srow['ari']['checked'] ?? '' ).' >End User Editable (<a href="http://projects.colsolgrp.net/documents/29" target="_blank">Through ARI Module</a>)</label>'; ?>
 													</div>
 												</div>
 											</div>

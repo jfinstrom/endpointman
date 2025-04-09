@@ -32,7 +32,7 @@
 
 
 	// errors name
-	$error_levels = array(
+	$error_levels = [
 	    E_USER_NOTICE => 'User Notice',
 	    E_USER_WARNING => 'User Warning',
 	    E_USER_ERROR => 'User Error',
@@ -44,7 +44,7 @@
 	    E_WARNING => 'Warning',
 	    E_ERROR => 'Error',
 	    E_STRICT => 'Strict'
-	);
+	];
 
 	
 	function draw_error_report(){return null;}
@@ -58,7 +58,7 @@
 
 		$html = debug_error( $errstr, $errno, $errfile, $errline );
 
-		
+
 		if( DEBUG ){
 			if( $error_n == 1 )
 				echo "<style>.ee{ border:1px solid #aaaaff;background:#f8f8ff;padding:10px;margin:10px;}</style>";
@@ -66,7 +66,7 @@
 		}
 		elseif(  $errno & $error_report_type )
 			$error_reporting[$errstr] = $errno;
-			
+
 		if( $errno & $error_log_file_type  )				
 			log_error( $html );					// log error
 		
@@ -81,7 +81,7 @@
 			if( count( $debug_array = debug_backtrace() )>3 ){
 				$html .= '<div class="ei">'."\n";
 			    for( $i = 3; $i < count( $debug_array ); $i++ )
-				   	$html .= "-" . str_replace( SITE_DIR, "", isset( $debug_array[$i]['file'] ) ? $debug_array[ $i ][ 'file' ] : null ) . " : " . ( isset($debug_array[$i]['line']) ? $debug_array[$i]['line'] : null ). "<br/>\n";
+				   	$html .= "-" . str_replace( SITE_DIR, "", $debug_array[ $i ][ 'file' ] ?? null ) . " : " . ( $debug_array[$i]['line'] ?? null ). "<br/>\n";
 				$html .= "</div>";	   	
 			}			
 			$html .= "</div>";

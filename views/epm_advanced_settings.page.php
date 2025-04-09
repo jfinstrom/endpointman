@@ -13,7 +13,7 @@
 			
 			if (!file_exists(FreePBX::Endpointman()->PHONE_MODULES_PATH . '/.git')) {
 				$o = getcwd();
-				chdir(dirname(FreePBX::Endpointman()->PHONE_MODULES_PATH));
+				chdir(dirname((string) FreePBX::Endpointman()->PHONE_MODULES_PATH));
 				FreePBX::Endpointman()->rmrf(FreePBX::Endpointman()->PHONE_MODULES_PATH);
 				$path = FreePBX::Endpointman()->has_git();
 				exec($path . ' clone https://github.com/provisioner/Provisioner.git _ep_phone_modules', $output);

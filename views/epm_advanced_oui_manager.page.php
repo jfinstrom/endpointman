@@ -5,8 +5,8 @@
 	$brands = sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
 	unset ($sql);
 	
-	echo load_view(__DIR__.'/epm_advanced/oui_manager.views.grid.php', array('request' => $_REQUEST));
-	echo load_view(__DIR__.'/epm_advanced/oui_manager.views.new.modal.php', array('request' => $_REQUEST, 'brands' => $brands));
+	echo load_view(__DIR__.'/epm_advanced/oui_manager.views.grid.php', ['request' => $_REQUEST]);
+	echo load_view(__DIR__.'/epm_advanced/oui_manager.views.new.modal.php', ['request' => $_REQUEST, 'brands' => $brands]);
 	
 	unset ($brands);
 	return;

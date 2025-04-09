@@ -24,7 +24,7 @@ class Text_Diff {
      *
      * @var array
      */
-    var $_edits;
+    public $_edits;
 
     /**
      * Computes diffs between sequences of strings.
@@ -39,7 +39,7 @@ class Text_Diff {
     {
         // Backward compatibility workaround.
         if (!is_string($engine)) {
-            $params = array($engine, $params);
+            $params = [$engine, $params];
             $engine = 'auto';
         }
 
@@ -56,7 +56,7 @@ class Text_Diff {
 
         $diff_engine = new $class();
 
-        $this->_edits = call_user_func_array(array($diff_engine, 'diff'), $params);
+        $this->_edits = call_user_func_array([$diff_engine, 'diff'], $params);
     }
 
     /**
@@ -128,7 +128,7 @@ class Text_Diff {
         } else {
             $rev = $this;
         }
-        $rev->_edits = array();
+        $rev->_edits = [];
         foreach ($this->_edits as $edit) {
             $rev->_edits[] = $edit->reverse();
         }
@@ -177,7 +177,7 @@ class Text_Diff {
      */
     function getOriginal()
     {
-        $lines = array();
+        $lines = [];
         foreach ($this->_edits as $edit) {
             if ($edit->orig) {
                 array_splice($lines, count($lines), 0, $edit->orig);
@@ -195,7 +195,7 @@ class Text_Diff {
      */
     function getFinal()
     {
-        $lines = array();
+        $lines = [];
         foreach ($this->_edits as $edit) {
             if ($edit->final) {
                 array_splice($lines, count($lines), 0, $edit->final);
@@ -213,7 +213,7 @@ class Text_Diff {
      */
     static function trimNewlines(&$line, $key)
     {
-        $line = str_replace(array("\n", "\r"), '', $line);
+        $line = str_replace(["\n", "\r"], '', $line);
     }
 
     /**
@@ -226,8 +226,8 @@ class Text_Diff {
      */
     static function _getTempDir()
     {
-        $tmp_locations = array('/tmp', '/var/tmp', 'c:\WUTemp', 'c:\temp',
-                               'c:\windows\temp', 'c:\winnt\temp');
+        $tmp_locations = ['/tmp', '/var/tmp', 'c:\WUTemp', 'c:\temp',
+                               'c:\windows\temp', 'c:\winnt\temp'];
 
         /* Try PHP's upload_tmp_dir directive. */
         $tmp = ini_get('upload_tmp_dir');
@@ -275,10 +275,10 @@ class Text_Diff {
 
         $prevtype = null;
         foreach ($this->_edits as $edit) {
-            if ($prevtype == get_class($edit)) {
+            if ($prevtype == $edit::class) {
                 trigger_error("Edit sequence is non-optimal", E_USER_ERROR);
             }
-            $prevtype = get_class($edit);
+            $prevtype = $edit::class;
         }
 
         return true;
@@ -342,10 +342,10 @@ class Text_MappedDiff extends Text_Diff {
  */
 class Text_Diff_Op {
 
-    var $orig;
-    var $final;
+    public $orig;
+    public $final;
 
-    function &reverse()
+    function &reverse(): never
     {
         trigger_error('Abstract method', E_USER_ERROR);
     }

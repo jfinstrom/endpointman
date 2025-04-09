@@ -1,7 +1,7 @@
 <?php
 global $active_modules;
 
-if (!empty($active_modules[endpoint][rawname])) {
+if (!empty($active_modules[\ENDPOINT][\RAWNAME])) {
 	if (FreePBX::Endpointman()->configmod->get("disable_endpoint_warning") !== "1") {
 		include('page.epm_warning.php');  
 	}
@@ -30,7 +30,7 @@ $epm = FreePBX::create()->Endpointman;
             <div class="col-sm-12">
                 <div class="fpbx-container">
                 <?php
-					echo load_view(__DIR__.'/views/epm_config_manager.page.php', array('epm' => $epm));
+					echo load_view(__DIR__.'/views/epm_config_manager.page.php', ['epm' => $epm]);
 				?>
                 </div>
             </div>

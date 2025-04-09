@@ -1,7 +1,7 @@
 <?php
 global $active_modules;
 
-if (!empty($active_modules[endpoint][rawname])) {
+if (!empty($active_modules[\ENDPOINT][\RAWNAME])) {
 	if (FreePBX::Endpointman()->configmod->get("disable_endpoint_warning") !== "1") {
 		include('page.epm_warning.php');  
 	}
@@ -17,33 +17,14 @@ if (!empty($active_modules[endpoint][rawname])) {
  * @package Endpoint Manager
  */
 
-require_once dirname(__FILE__).'/config.php';
+require_once __DIR__.'/config.php';
 
-switch ($page) {
-    case 'advanced':
-        include LOCAL_PATH . 'includes/advanced.inc';
-        break;
-    case 'epm_oss':
-        include LOCAL_PATH . 'includes/advanced.inc';
-        break;
-
-    case 'template_manager':
-        include LOCAL_PATH . 'includes/template_manager.inc';
-        break;
-
-    case 'devices_manager';
-        include LOCAL_PATH . 'includes/devices_manager.inc';
-        break;
-
-    case 'brand_model_manager':
-        include LOCAL_PATH . 'includes/brand_model_manager.inc';
-        break;
-
-    case 'installer':
-        include LOCAL_PATH . 'install.inc';
-        break;
-
-    default:
-        include LOCAL_PATH . 'includes/devices_manager.inc';
-		
-		}
+match ($page) {
+    'advanced' => include LOCAL_PATH . 'includes/advanced.inc',
+    'epm_oss' => include LOCAL_PATH . 'includes/advanced.inc',
+    'template_manager' => include LOCAL_PATH . 'includes/template_manager.inc',
+    'devices_manager' => include LOCAL_PATH . 'includes/devices_manager.inc',
+    'brand_model_manager' => include LOCAL_PATH . 'includes/brand_model_manager.inc',
+    'installer' => include LOCAL_PATH . 'install.inc',
+    default => include LOCAL_PATH . 'includes/devices_manager.inc',
+};

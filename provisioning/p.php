@@ -2,10 +2,10 @@
 
 function getMethod() {
 	$method = $_SERVER['REQUEST_METHOD'];
-	$override = isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']) ? $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] : (isset($_GET['method']) ? $_GET['method'] : '');
-	if ($method == 'POST' && strtoupper($override) == 'PUT') {
+	$override = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ?? $_GET['method'] ?? '';
+	if ($method == 'POST' && strtoupper((string) $override) == 'PUT') {
 		$method = 'PUT';
-	} elseif ($method == 'POST' && strtoupper($override) == 'DELETE') {
+	} elseif ($method == 'POST' && strtoupper((string) $override) == 'DELETE') {
 		$method = 'DELETE';
 	}
 	return $method;
@@ -16,7 +16,7 @@ function getMethod() {
 
 
 $bootstrap_settings['freepbx_auth'] = false;
-if (!@include_once(getenv('FREEPBX_CONF') ? getenv('FREEPBX_CONF') : '/etc/freepbx.conf')) {
+if (!@include_once(getenv('FREEPBX_CONF') ?: '/etc/freepbx.conf')) {
     include_once('/etc/asterisk/freepbx.conf');
 }
 
@@ -62,8 +62,8 @@ if(((getMethod() == 'PUT') OR (getMethod() == 'POST'))) {
 if(getMethod() == "GET") {
     # Workaround for SPAs that don't actually request their type of device
     # Assume they're 504G's. Faulty in firmware 7.4.3a
-    $filename = basename($_SERVER["REQUEST_URI"]);
-    $web_path = 'http://'.$_SERVER["SERVER_NAME"].dirname($_SERVER["PHP_SELF"]).'/';
+    $filename = basename((string) $_SERVER["REQUEST_URI"]);
+    $web_path = 'http://'.$_SERVER["SERVER_NAME"].dirname((string) $_SERVER["PHP_SELF"]).'/';
     /*
     if ($filename == "p.php") { 
             $filename = "spa502G.cfg";
@@ -73,7 +73,7 @@ if(getMethod() == "GET") {
      */
     
     # Firmware Linksys/SPA504G-7.4.3a is broken and MUST be upgraded.
-    if (preg_match('/7.4.3a/', $_SERVER['HTTP_USER_AGENT'])) {
+    if (preg_match('/7.4.3a/', (string) $_SERVER['HTTP_USER_AGENT'])) {
             $str = '<flat-profile><Upgrade_Enable group="Provisioning/Firmware_Upgrade">Yes</Upgrade_Enable>';
             $str .= '<Upgrade_Rule group="Provisioning/Firmware_Upgrade">http://'.$provis_ip.'/current.bin</Upgrade_Rule></flat-profile>';
             echo $str;

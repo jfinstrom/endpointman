@@ -26,7 +26,7 @@ if($_REQUEST['pop_type'] == 'edit_specifics') {
 
         $html_array = $endpoint->generate_gui_html(serialize($merged), NULL, TRUE, NULL, $lines);
 
-        $specific_data = array();
+        $specific_data = [];
         if (isset($_REQUEST['button_save'])) {
             foreach ($_REQUEST as $key => $data) {
                 $key = str_replace('freepbx_', '', $key);
@@ -59,7 +59,7 @@ if($_REQUEST['pop_type'] == 'edit_specifics') {
                 $specific_data['data']['line|'.$lid.'|line_enabled'] = !isset($specific_data['data']['line|'.$lid.'|line_enabled']) ? TRUE : $specific_data['data']['line|'.$lid.'|line_enabled'];
         }
 
-        $specific_data['data']['ntp'] = isset($specific_data['data']['ntp']) ? $specific_data['data']['ntp'] : $endpoint->global_cfg['ntp'];
+        $specific_data['data']['ntp'] ??= $endpoint->global_cfg['ntp'];
         $specific_data['data']['use_dhcp'] = isset($specific_data['data']['use_dhcp']) ? TRUE : FALSE;
 
         $html_array = $endpoint->generate_gui_html(serialize($merged), serialize($specific_data), TRUE, NULL, $lines);
@@ -95,9 +95,9 @@ if($_REQUEST['pop_type'] == 'edit_template') {
 
 if($_REQUEST['pop_type'] == 'global_over') {
     if(isset($_REQUEST['button_update_globals'])) {
-        $_POST['srvip'] = trim($_POST['srvip']);  #trim whitespace from IP address
+        $_POST['srvip'] = trim((string) $_POST['srvip']);  #trim whitespace from IP address
 
-        $_POST['config_loc'] = trim($_POST['config_loc']);  #trim whitespace from Config Location
+        $_POST['config_loc'] = trim((string) $_POST['config_loc']);  #trim whitespace from Config Location
 
         //No trailing slash. Help the user out and add one :-)
         if($_POST['config_loc'][strlen($_POST['config_loc'])-1] != "/") {
@@ -185,17 +185,17 @@ if($_REQUEST['pop_type'] == 'global_over') {
 }
 
 if($_REQUEST['pop_type'] == "alt_cfg_edit") {
-    $value = isset($_POST['value']) ? $_POST['value'] : $_REQUEST['value'];
-    preg_match('/^(\d*)\_(.*)/i', $value, $matches);
+    $value = $_POST['value'] ?? $_REQUEST['value'];
+    preg_match('/^(\d*)\_(.*)/i', (string) $value, $matches);
 
-    $cfg_id = isset($matches[1]) ? $matches[1] : null;
-    $cfg_filename = isset($matches[2]) ? $matches[2] : null;
+    $cfg_id = $matches[1] ?? null;
+    $cfg_filename = $matches[2] ?? null;
 
     if($_REQUEST['custom'] == 0) {
         if($cfg_id != 0) {
             //SQL Config Files
             if(isset($_REQUEST['button_save'])) {
-                $sql = "UPDATE endpointman_custom_configs SET data = '".addslashes($_REQUEST['config_text'])."' WHERE id = ".$cfg_id;
+                $sql = "UPDATE endpointman_custom_configs SET data = '".addslashes((string) $_REQUEST['config_text'])."' WHERE id = ".$cfg_id;
                 $endpoint->eda->sql($sql);
                 $endpoint->message['alt_config'] = "Saved to Database!";
             }
@@ -224,7 +224,7 @@ if($_REQUEST['pop_type'] == "alt_cfg_edit") {
                 $row = $endpoint->eda->sql($sql, 'getRow', DB_FETCHMODE_ASSOC);
                 $config_fs = unserialize($row['config_files_override']);
 
-                $sql = 'INSERT INTO endpointman_custom_configs (name, original_name, product_id, data) VALUES ("'.$row['name'].'_'.$time.'","'.addslashes($cfg_filename).'","'.$row['product_id'].'","'.addslashes($_REQUEST['config_text']).'")';
+                $sql = 'INSERT INTO endpointman_custom_configs (name, original_name, product_id, data) VALUES ("'.$row['name'].'_'.$time.'","'.addslashes((string) $cfg_filename).'","'.$row['product_id'].'","'.addslashes((string) $_REQUEST['config_text']).'")';
                 $endpoint->eda->sql($sql);
                 $endpoint->message['alt_config'] = "Saved to Database!";
                 $new_id = $endpoint->eda->sql('SELECT last_insert_id()','getOne');
@@ -235,7 +235,7 @@ if($_REQUEST['pop_type'] == "alt_cfg_edit") {
 
                 $value = $new_id."_".$row['mac'].'_'.$time;
 
-                $config_fs = is_array($config_fs) ? $config_fs : array();
+                $config_fs = is_array($config_fs) ? $config_fs : [];
 
                 $file = $row['original_name'];
                 $row['original_name'] = str_replace(".","_",$row['original_name']);
@@ -250,7 +250,7 @@ if($_REQUEST['pop_type'] == "alt_cfg_edit") {
             $contents = $endpoint->display_htmlspecialchars($contents);
             $endpoint->tpl->assign("config_data", $contents);
             $endpoint->tpl->assign("location", $file);
-            $endpoint->tpl->assign("file", basename($file));
+            $endpoint->tpl->assign("file", basename((string) $file));
             $endpoint->tpl->assign("allow_hd", $endpoint->global_cfg['allow_hdfiles']);
             $endpoint->tpl->assign("value", $value);
 
@@ -258,7 +258,7 @@ if($_REQUEST['pop_type'] == "alt_cfg_edit") {
     } else {
         if($cfg_id != 0) {
             if(isset($_REQUEST['button_save'])) {
-                $sql = "UPDATE endpointman_custom_configs SET data = '".addslashes($_REQUEST['config_text'])."' WHERE id = ".$cfg_id;
+                $sql = "UPDATE endpointman_custom_configs SET data = '".addslashes((string) $_REQUEST['config_text'])."' WHERE id = ".$cfg_id;
                 $endpoint->eda->sql($sql);
                 $endpoint->message['alt_config'] = "Saved to Database!";
             }
@@ -287,7 +287,7 @@ if($_REQUEST['pop_type'] == "alt_cfg_edit") {
                 $row = $endpoint->eda->sql($sql, 'getRow', DB_FETCHMODE_ASSOC);
                 $config_fs = unserialize($row['config_files_override']);
 
-                $sql = 'INSERT INTO endpointman_custom_configs (name, original_name, product_id, data) VALUES ("'.$row['mac'].'_'.$time.'","'.addslashes($cfg_filename).'","'.$row['product_id'].'","'.addslashes($_REQUEST['config_text']).'")';
+                $sql = 'INSERT INTO endpointman_custom_configs (name, original_name, product_id, data) VALUES ("'.$row['mac'].'_'.$time.'","'.addslashes((string) $cfg_filename).'","'.$row['product_id'].'","'.addslashes((string) $_REQUEST['config_text']).'")';
                 $endpoint->eda->sql($sql);
                 $endpoint->message['alt_config'] = "Saved to Database!";
                 $new_id = $endpoint->eda->sql('SELECT last_insert_id()','getOne');
@@ -298,7 +298,7 @@ if($_REQUEST['pop_type'] == "alt_cfg_edit") {
 
                 $value = $new_id."_".$row['mac'].'_'.$time;
 
-                $config_fs = is_array($config_fs) ? $config_fs : array();
+                $config_fs = is_array($config_fs) ? $config_fs : [];
 
                 $file = $row['original_name'];
                 $row['original_name'] = str_replace(".","_",$row['original_name']);
@@ -313,7 +313,7 @@ if($_REQUEST['pop_type'] == "alt_cfg_edit") {
             $contents = $endpoint->display_htmlspecialchars($contents);
             $endpoint->tpl->assign("config_data", $contents);
             $endpoint->tpl->assign("location", $file);
-            $endpoint->tpl->assign("file", basename($file));
+            $endpoint->tpl->assign("file", basename((string) $file));
             $endpoint->tpl->assign("allow_hd", $endpoint->global_cfg['allow_hdfiles']);
             $endpoint->tpl->assign("value", $value);
 
@@ -325,14 +325,14 @@ if($_REQUEST['pop_type'] == "alt_cfg_edit") {
         $sql = "SELECT cfg_dir,directory,config_files FROM endpointman_product_list,endpointman_brand_list WHERE endpointman_product_list.brand = endpointman_brand_list.id AND endpointman_product_list.id = '". $_REQUEST['product_select'] ."'";
         $row = $endpoint->eda->sql($sql, 'getRow', DB_FETCHMODE_ASSOC);
 
-        $config_files = explode(",",$row['config_files']);
+        $config_files = explode(",",(string) $row['config_files']);
         $file=PHONE_MODULES_PATH.'endpoint/'.$row['directory']."/".$row['cfg_dir']."/".$config_files[$_REQUEST['cfg_file']];
         if(isset($_REQUEST['config_text'])) {
             if(isset($_REQUEST['button_save'])) {
                 file_put_contents($file, $_REQUEST['config_text']);
                 $endpoint->message['alt_config'] = "Saved to Hard Drive!";
             }elseif(isset($_REQUEST['button_save_as'])) {
-                $sql = 'INSERT INTO endpointman_custom_configs (name, original_name, product_id, data) VALUES ("'.addslashes($_REQUEST['save_as_name']).'","'.addslashes($config_files[$_REQUEST['cfg_file']]).'","'.$_REQUEST['product_select'].'","'.addslashes($_REQUEST['config_text']).'")';
+                $sql = 'INSERT INTO endpointman_custom_configs (name, original_name, product_id, data) VALUES ("'.addslashes((string) $_REQUEST['save_as_name']).'","'.addslashes($config_files[$_REQUEST['cfg_file']]).'","'.$_REQUEST['product_select'].'","'.addslashes($_REQUEST['config_text']).'")';
                 $endpoint->eda->sql($sql);
                 $endpoint->message['alt_config'] = "Saved to Database!";
             }
@@ -365,7 +365,7 @@ if($_REQUEST['pop_type'] == "alt_cfg_edit") {
                 $sql = 'SELECT original_name FROM endpointman_custom_configs WHERE id = '.$_REQUEST['sql'];
                 $file_name = $endpoint->eda->sql($sql,'getOne');
 
-                $sql = "INSERT INTO endpointman_custom_configs (name, original_name, product_id, data) VALUES ('".addslashes($_REQUEST['save_as_name'])."','".addslashes($file_name)."','".$_REQUEST['product_select']."','".addslashes($_REQUEST['config_text'])."')";
+                $sql = "INSERT INTO endpointman_custom_configs (name, original_name, product_id, data) VALUES ('".addslashes((string) $_REQUEST['save_as_name'])."','".addslashes((string) $file_name)."','".$_REQUEST['product_select']."','".addslashes($_REQUEST['config_text'])."')";
                 $endpoint->eda->sql($sql);
                 $endpoint->message['alt_config'] = "Saved to Database!";
             }
@@ -392,7 +392,7 @@ if($_REQUEST['pop_type'] == "alt_cfg_edit") {
         $sql = "SELECT cfg_dir,directory,config_files FROM endpointman_product_list,endpointman_brand_list WHERE endpointman_product_list.brand = endpointman_brand_list.id AND endpointman_product_list.id ='" . $_REQUEST['product_select'] . "'";
 
         $row = $endpoint->eda->sql($sql, 'getRow', DB_FETCHMODE_ASSOC);
-        $config_files = explode(",",$row['config_files']);
+        $config_files = explode(",",(string) $row['config_files']);
         $i = 0;
         foreach($config_files as $config_files_data) {
             $file_list[$i]['value'] = $i;

@@ -15,20 +15,20 @@ function endpointman_get_config($engine) {
     switch ($engine) {
         case "asterisk":
             if (isset($core_conf) && is_a($core_conf, "core_conf") && (method_exists($core_conf, 'addSipNotify'))) {
-                $core_conf->addSipNotify('polycom-check-cfg', array('Event' => 'check-sync', 'Content-Length' => '0'));
-                $core_conf->addSipNotify('polycom-reboot', array('Event' => 'check-sync', 'Content-Length' => '0'));
-                $core_conf->addSipNotify('sipura-check-cfg', array('Event' => 'resync', 'Content-Length' => '0'));
-                $core_conf->addSipNotify('grandstream-check-cfg', array('Event' => 'sys-control'));
-                $core_conf->addSipNotify('cisco-check-cfg', array('Event' => 'check-sync', 'Content-Length' => '0'));
-                $core_conf->addSipNotify('reboot-snom', array('Event' => 'reboot', 'Content-Length' => '0'));
-                $core_conf->addSipNotify('aastra-check-cfg', array('Event' => 'check-sync', 'Content-Length' => '0'));
-                $core_conf->addSipNotify('linksys-cold-restart', array('Event' => 'reboot_now', 'Content-Length' => '0'));
-                $core_conf->addSipNotify('linksys-warm-restart', array('Event' => 'restart_now', 'Content-Length' => '0'));
-                $core_conf->addSipNotify('spa-reboot', array('Event' => 'reboot', 'Content-Length' => '0'));
-                $core_conf->addSipNotify('reboot-yealink', array('Event' => 'check-sync\;reboot=true', 'Content-Length' => '0'));
-			    $core_conf->addSipNotify('reboot-gigaset', array('Event' => 'check-sync;reboot=true', 'Content-Length' => '0'));
-				$core_conf->addSipNotify('panasonic-check-cfg', array('Event' => 'check-sync', 'Content-Length' => '0'));
-				$core_conf->addSipNotify('snom-check-cfg', array('Event' => 'check-sync', 'Content-Length' => '0'));
+                $core_conf->addSipNotify('polycom-check-cfg', ['Event' => 'check-sync', 'Content-Length' => '0']);
+                $core_conf->addSipNotify('polycom-reboot', ['Event' => 'check-sync', 'Content-Length' => '0']);
+                $core_conf->addSipNotify('sipura-check-cfg', ['Event' => 'resync', 'Content-Length' => '0']);
+                $core_conf->addSipNotify('grandstream-check-cfg', ['Event' => 'sys-control']);
+                $core_conf->addSipNotify('cisco-check-cfg', ['Event' => 'check-sync', 'Content-Length' => '0']);
+                $core_conf->addSipNotify('reboot-snom', ['Event' => 'reboot', 'Content-Length' => '0']);
+                $core_conf->addSipNotify('aastra-check-cfg', ['Event' => 'check-sync', 'Content-Length' => '0']);
+                $core_conf->addSipNotify('linksys-cold-restart', ['Event' => 'reboot_now', 'Content-Length' => '0']);
+                $core_conf->addSipNotify('linksys-warm-restart', ['Event' => 'restart_now', 'Content-Length' => '0']);
+                $core_conf->addSipNotify('spa-reboot', ['Event' => 'reboot', 'Content-Length' => '0']);
+                $core_conf->addSipNotify('reboot-yealink', ['Event' => 'check-sync\;reboot=true', 'Content-Length' => '0']);
+			    $core_conf->addSipNotify('reboot-gigaset', ['Event' => 'check-sync;reboot=true', 'Content-Length' => '0']);
+				$core_conf->addSipNotify('panasonic-check-cfg', ['Event' => 'check-sync', 'Content-Length' => '0']);
+				$core_conf->addSipNotify('snom-check-cfg', ['Event' => 'check-sync', 'Content-Length' => '0']);
             }
             break;
     }
@@ -37,22 +37,22 @@ function endpointman_get_config($engine) {
 function endpointman_configpageinit($pagename) {
     global $currentcomponent, $amp_conf, $db;
 
-    $display = isset($_REQUEST['display']) ? $_REQUEST['display'] : null;
+    $display = $_REQUEST['display'] ?? null;
 	$type = '';
 	$tech = '';
 	$extdisplay = '';
 
     if ($display == "extensions") {
         if (isset($_REQUEST['extension'])) {
-            $extdisplay = isset($_REQUEST['extension']) ? $_REQUEST['extension'] : null;
+            $extdisplay = $_REQUEST['extension'] ?? null;
         } else {
-            $extdisplay = isset($_REQUEST['extdisplay']) ? $_REQUEST['extdisplay'] : null;
+            $extdisplay = $_REQUEST['extdisplay'] ?? null;
         }
     } elseif ($display == "devices") {
 		if (isset($_REQUEST['deviceid'])) {
-			$extdisplay = isset($_REQUEST['deviceid']) ? $_REQUEST['deviceid'] : null;
+			$extdisplay = $_REQUEST['deviceid'] ?? null;
 		} else {
-			$extdisplay = isset($_REQUEST['extdisplay']) ? $_REQUEST['extdisplay'] : null;
+			$extdisplay = $_REQUEST['extdisplay'] ?? null;
 		}
 	} else {
 		// we only care about extensions or devices, otherwise return
@@ -69,7 +69,7 @@ function endpointman_configpageinit($pagename) {
 			$type = 'edit';
 		}
     } elseif(isset($_REQUEST['tech_hardware']) OR isset($_REQUEST['tech'])) {
-		$tech = isset($_REQUEST['tech_hardware']) ? $_REQUEST['tech_hardware'] : $_REQUEST['tech'];
+		$tech = $_REQUEST['tech_hardware'] ?? $_REQUEST['tech'];
 		if(($tech == 'sip_generic') OR ($tech == 'sip') OR ($tech == 'pjsip')) {
         	$tech = "sip";
 			$type = 'new';
@@ -79,8 +79,8 @@ function endpointman_configpageinit($pagename) {
     if ((($tech == 'sip') OR ($tech == 'pjsip')) AND (!empty($type))) {
         global $endpoint;
 
-	    $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : null;
-	    $delete = isset($_REQUEST['epm_delete']) ? $_REQUEST['epm_delete'] : null;
+	    $action = $_REQUEST['action'] ?? null;
+	    $delete = $_REQUEST['epm_delete'] ?? null;
 
         $doc_root = $amp_conf['AMPWEBROOT'] . "/admin/modules/endpointman/";
         if (file_exists($doc_root . "includes/functions.inc")) {
@@ -106,18 +106,18 @@ function endpointman_configpageinit($pagename) {
                     }
                 }
 
-                $mac = isset($_REQUEST['epm_mac']) ? $_REQUEST['epm_mac'] : null;
+                $mac = $_REQUEST['epm_mac'] ?? null;
 
                 if (!empty($mac)) {
                     //Mac is set
-                    $brand = isset($_REQUEST['epm_brand']) ? $_REQUEST['epm_brand'] : null;
-                    $model = isset($_REQUEST['epm_model']) ? $_REQUEST['epm_model'] : null;
-                    $line = isset($_REQUEST['epm_line']) ? $_REQUEST['epm_line'] : null;
-                    $temp = isset($_REQUEST['epm_temps']) ? $_REQUEST['epm_temps'] : null;
+                    $brand = $_REQUEST['epm_brand'] ?? null;
+                    $model = $_REQUEST['epm_model'] ?? null;
+                    $line = $_REQUEST['epm_line'] ?? null;
+                    $temp = $_REQUEST['epm_temps'] ?? null;
                     if (isset($_REQUEST['name'])) {
-                        $name = isset($_REQUEST['name']) ? $_REQUEST['name'] : null;
+                        $name = $_REQUEST['name'] ?? null;
                     } else {
-                        $name = isset($_REQUEST['description']) ? $_REQUEST['description'] : null;
+                        $name = $_REQUEST['description'] ?? null;
                     }
                     if (isset($_REQUEST['deviceid'])) {
                         if ($_REQUEST['devicetype'] == "fixed") {
@@ -130,7 +130,7 @@ function endpointman_configpageinit($pagename) {
                         }
                     }
 
-                    $reboot = isset($_REQUEST['epm_reboot']) ? $_REQUEST['epm_reboot'] : null;
+                    $reboot = $_REQUEST['epm_reboot'] ?? null;
 
                     if ($endpoint->mac_check_clean($mac)) {
                         $sql = "SELECT id FROM endpointman_mac_list WHERE mac = '" . $endpoint->mac_check_clean($mac) . "'";
@@ -200,18 +200,18 @@ function endpointman_applyhooks() {
 // This is called before the page is actually displayed, so we can use addguielem().
 function endpointman_configpageload() {
     global $currentcomponent, $endpoint, $db, $astman;
-    $display = isset($_REQUEST['display']) ? $_REQUEST['display'] : null;
-    $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : null;
-    $extdisplay = isset($_REQUEST['extdisplay']) ? $_REQUEST['extdisplay'] : null;
+    $display = $_REQUEST['display'] ?? null;
+    $action = $_REQUEST['action'] ?? null;
+    $extdisplay = $_REQUEST['extdisplay'] ?? null;
     if (isset($extdisplay) && !empty($extdisplay)) {
         $sql = "SELECT tech FROM devices WHERE id = " . $extdisplay;
         $tech = $endpoint->eda->sql($sql, 'getOne');
     } else {
-        $tech = isset($_REQUEST['tech_hardware']) ? $_REQUEST['tech_hardware'] : null;
+        $tech = $_REQUEST['tech_hardware'] ?? null;
     }
 
  $extension_address = $astman->database_get("SIP","Registry"."/$extdisplay");
-    $extension_address = explode(":",$extension_address);
+    $extension_address = explode(":",(string) $extension_address);
   // echo $extension_address['0'];
 
     if (isset($tech) && (($tech == 'sip') OR ($tech == 'pjsip') OR ($tech == 'sip_generic'))) {
@@ -272,9 +272,9 @@ function endpointman_configpageload() {
                     $line_list = $endpoint->linesAvailable($line_info['luid']);
                     $template_list = $endpoint->display_templates($info['product_id']);
                 } else {
-                    $model_list = array();
-                    $line_list = array();
-                    $template_list = array();
+                    $model_list = [];
+                    $line_list = [];
+                    $template_list = [];
                 }
 
                 $checked = false;
@@ -320,9 +320,9 @@ function endpointman_configpageload() {
                 $currentcomponent->addjsfunc('model_change(value,mac)', $js);
 
                 $brand_list = $endpoint->brands_available(NULL, true);
-                $model_list = array();
-                $line_list = array();
-                $template_list = array();
+                $model_list = [];
+                $line_list = [];
+                $template_list = [];
 
                 $currentcomponent->addguielem($section, new gui_textbox('epm_mac', $info['mac'], 'MAC Address', 'The MAC Address of the Phone Assigned to this Extension/Device. <br />(Leave Blank to Remove from Endpoint Manager)', '', 'Please enter a valid MAC Address', true, 17, false), 9);
                 $currentcomponent->addguielem($section, new gui_selectbox('epm_brand', $brand_list, $info['brand_id'], 'Brand', 'The Brand of this Phone.', false, 'frm_' . $display . '_brand_change(this.options[this.selectedIndex].value)', false), 9);
@@ -340,15 +340,15 @@ function endpointman_hookProcess_core($viewing_itemid, $request) {
 
 }
 
-function endpointman_module_install_check_callback($mods = array()) {
+function endpointman_module_install_check_callback($mods = []) {
     global $active_modules;
 
-    $ret = array();
+    $ret = [];
     $current_mod = 'endpointman';
-    $conflicting_mods = array('restart');
+    $conflicting_mods = ['restart'];
 
 	foreach($mods as $k => $v) {
-		if (in_array($k, $conflicting_mods) && !in_array($active_modules[$current_mod]['status'],array(MODULE_STATUS_NOTINSTALLED,MODULE_STATUS_BROKEN))) {
+		if (in_array($k, $conflicting_mods) && !in_array($active_modules[$current_mod]['status'],[MODULE_STATUS_NOTINSTALLED,MODULE_STATUS_BROKEN])) {
 			$ret[] = $v['name'];
 		}
 	}

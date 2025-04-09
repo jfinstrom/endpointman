@@ -39,9 +39,9 @@ function endpointman_update_progress_bar($out) {
 
 function endpointmanager_read_header($ch, $string) {
     global $file_size, $fout;
-    $length = strlen($string);
+    $length = strlen((string) $string);
     $regs = "";
-    preg_match("/(Content-Length:) (.*)/i", $string, $regs);
+    preg_match("/(Content-Length:) (.*)/i", (string) $string, $regs);
     if ((isset($regs[2])) AND ($regs[2] <> "")) {
         $file_size = intval($regs[2]);
     }
@@ -52,7 +52,7 @@ function endpointmanager_read_header($ch, $string) {
 
 function endpointmanager_read_body($ch, $string) {
     global $fout, $file_size, $downloaded, $lastseen, $progress_bar;
-    $length = strlen($string);
+    $length = strlen((string) $string);
     $downloaded += intval($length);
     $downloadProgress = round(100 * (1 - $downloaded / $file_size), 0);
     $downloadProgress = 100 - $downloadProgress;
@@ -63,7 +63,7 @@ function endpointmanager_read_body($ch, $string) {
         $lastseen = $downloadProgress;
     }
     if ($fout)
-        fwrite($fout, $string);
+        fwrite($fout, (string) $string);
     //ob_flush();
     endpointman_flush_buffers();
     return $length;

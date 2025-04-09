@@ -59,11 +59,11 @@
 	$devices_list = $full_device_list;
 	
 	$i = 0;
-	$list = array();
+	$list = [];
 	$device_statuses = shell_exec(FreePBX::Endpointman()->configmod->get("asterisk_location")." -rx 'sip show peers'");
 	
 	$device_statuses = explode("\n", $device_statuses);
-	$devices_status = array();
+	$devices_status = [];
 	foreach($device_statuses as $key => $data) {
 		preg_match('/(\d*)\/[\d]*/i', $data, $extout);
 		preg_match('/\b(?:\d{1,3}\.){3}\d{1,3}\b/i', $data, $ipaddress);
@@ -105,8 +105,8 @@
 		}
 		$ext = $list[$i]['line'][0]['ext'];
 	
-		$list[$i]['status']['status'] = isset($devices_status[$ext]['status']) ?$devices_status[$ext]['status'] : FALSE;
-		$list[$i]['status']['ip'] = isset($devices_status[$ext]['ip']) ? $devices_status[$ext]['ip'] : FALSE;
+		$list[$i]['status']['status'] = $devices_status[$ext]['status'] ?? FALSE;
+		$list[$i]['status']['ip'] = $devices_status[$ext]['ip'] ?? FALSE;
 		$list[$i]['status']['port'] = '';
 		$i++;
 	}
@@ -131,7 +131,7 @@ $amp_send['AMPDBNAME'] = $amp_conf['AMPDBNAME'];
 	$sql = "SELECT DISTINCT endpointman_product_list.* FROM endpointman_product_list, endpointman_model_list WHERE endpointman_product_list.id = endpointman_model_list.product_id AND endpointman_model_list.hidden = 0 AND endpointman_model_list.enabled = 1 AND endpointman_product_list.hidden != 1 AND endpointman_product_list.cfg_dir !=  ''";
 	$template_list = sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
 	$i = 1;
-	$product_list = array();
+	$product_list = [];
 	$product_list[0]['value'] = 0;
 	$product_list[0]['text'] = "";
 	foreach($template_list as $row) {
@@ -143,7 +143,7 @@ $amp_send['AMPDBNAME'] = $amp_conf['AMPDBNAME'];
 	$sql = "SELECT DISTINCT endpointman_model_list.* FROM endpointman_product_list, endpointman_model_list WHERE endpointman_product_list.id = endpointman_model_list.product_id AND endpointman_model_list.hidden = 0 AND endpointman_model_list.enabled = 1 AND endpointman_product_list.hidden != 1 AND endpointman_product_list.cfg_dir !=  ''";
 	$template_list = sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
 	$i = 1;
-	$model_list = array();
+	$model_list = [];
 	$model_list[0]['value'] = 0;
 	$model_list[0]['text'] = "";
 	foreach($template_list as $row) {
@@ -1082,7 +1082,7 @@ switch ($sub_type) {
                     $provisioner_lib->brand_name = $phone_info['directory'];
                     $provisioner_lib->family_line = $phone_info['cfg_dir'];
 
-                    $provisioner_lib->settings['line'][0] = array('username' => $phone_info['line'][1]['ext'], 'authname' => $phone_info['line'][1]['ext']);
+                    $provisioner_lib->settings['line'][0] = ['username' => $phone_info['line'][1]['ext'], 'authname' => $phone_info['line'][1]['ext']];
                     $provisioner_lib->reboot();
                     unset($provisioner_lib);
                 }

@@ -70,7 +70,7 @@ class RainTPL{
 	 * @access private
 	 * @var array
 	 */
-	var $variables = array( );
+	public $variables = [ ];
 	
 
 	/**
@@ -93,7 +93,7 @@ class RainTPL{
 
 	function RainTPL( $tpl_dir = null, $tpl_compile_dir = null, $base_dir = null ){
 		if( $tpl_dir )
-			RainTPL::$tpl_dir = $tpl_dir . ( substr($tpl_dir,-1,1) != "/" ? "/" : "" );
+			RainTPL::$tpl_dir = $tpl_dir . ( !str_ends_with($tpl_dir, "/") ? "/" : "" );
 		if( $tpl_compile_dir )
 			RainTPL::$tpl_compile_dir = $tpl_compile_dir;
 		if( $base_dir )

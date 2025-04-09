@@ -34,7 +34,7 @@ class epm_data_abstraction {
         return $results;
     }
 
-    function sql_error($results) {
+    function sql_error($results): never {
         echo "<h1>FATAL SQL ERROR! ::::: ";
         echo $results->getDebugInfo() . "SQL - <br /> $sql";
         echo "</h1>";

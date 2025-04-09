@@ -11,7 +11,7 @@ namespace FreePBX\modules;
 
 class Endpointman_Templates
 {
-	public function __construct($freepbx = null, $cfgmod = null, $epm_config, $eda) 
+	public function __construct($epm_config, $eda, $freepbx = null, $cfgmod = null) 
 	{
 		$this->freepbx = $freepbx;
 		$this->db = $freepbx->Database;
@@ -24,19 +24,19 @@ class Endpointman_Templates
 	public function myShowPage(&$pagedata) {
 		if(empty($pagedata))
 		{
-			$pagedata['manager'] = array(
+			$pagedata['manager'] = [
 				"name" => _("Current Templates"),
 				"page" => 'views/epm_templates_manager.page.php'
-			);
-			$pagedata['editor'] = array(
+			];
+			$pagedata['editor'] = [
 					"name" => _("Template Editor"),
 					"page" => 'views/epm_templates_editor.page.php'
-			);
+			];
 		}
 	}
 
 	public function ajaxRequest($req, &$setting) {
-		$arrVal = array("model_clone", "list_current_template", "add_template", "del_template", "custom_config_get_gloabl", "custom_config_update_gloabl", "custom_config_reset_gloabl", "list_files_edit");
+		$arrVal = ["model_clone", "list_current_template", "add_template", "del_template", "custom_config_get_gloabl", "custom_config_update_gloabl", "custom_config_reset_gloabl", "list_files_edit"];
 		if (in_array($req, $arrVal)) {
 			$setting['authenticate'] = true;
 			$setting['allowremote'] = false;
@@ -53,28 +53,13 @@ class Endpointman_Templates
 		$retarr = "";
 		if ($module_tab == "manager")
 		{
-			switch ($command)
-			{
-				case "list_current_template":
-					$retarr = $this->epm_templates_list_current_templates();
-					break;
-					
-				case "model_clone":
-					$retarr = $this->epm_templates_model_clone();
-					break;
-					
-				case "add_template":
-					$retarr = $this->epm_templates_add_template();
-					break;
-					
-				case "del_template":
-					$retarr = $this->epm_templates_del_template();
-					break;
-
-				default:
-					$retarr = array("status" => false, "message" => _("Command not found!") . " [" .$command. "]");
-					break;
-			}
+			$retarr = match ($command) {
+                "list_current_template" => $this->epm_templates_list_current_templates(),
+                "model_clone" => $this->epm_templates_model_clone(),
+                "add_template" => $this->epm_templates_add_template(),
+                "del_template" => $this->epm_templates_del_template(),
+                default => ["status" => false, "message" => _("Command not found!") . " [" .$command. "]"],
+            };
 		}
 		elseif ($module_tab == "editor")
 		{
@@ -103,12 +88,12 @@ class Endpointman_Templates
 					break;
 					
 				default:
-					$retarr = array("status" => false, "message" => _("Command not found!") . " [" .$command. "]");
+					$retarr = ["status" => false, "message" => _("Command not found!") . " [" .$command. "]"];
 					break;
 			}
 		}
 		else {
-			$retarr = array("status" => false, "message" => _("Tab not found!") . " [" .$module_tab. "]");
+			$retarr = ["status" => false, "message" => _("Tab not found!") . " [" .$module_tab. "]"];
 		}
 		return $retarr;
 	}
@@ -119,30 +104,30 @@ class Endpointman_Templates
 	
 	public function getRightNav($request) {
 		if(isset($request['subpage']) && $request['subpage'] == "editor") {
-			return load_view(__DIR__."/views/epm_templates/editor.views.rnav.php",array());
+			return load_view(__DIR__."/views/epm_templates/editor.views.rnav.php",[]);
 		} else {
 			return '';
 		}
 	}
 	
 	public function getActionBar($request) {
-		$buttons = array();
+		$buttons = [];
         switch($request['subpage']) {
             case 'editor':
-                $buttons = array(
-					'delete' => array(
+                $buttons = [
+					'delete' => [
                         'name' => 'delete',
                         'id' => 'delete',
                         'value' => _('Delete'),
                         'hidden' => ''
-                    ),
-					'save' => array(
+                    ],
+					'save' => [
                         'name' => 'submit',
                         'id' => 'save',
                         'value' => _('Save'),
                         'hidden' => ''
-                    )
-                );
+                    ]
+                ];
 				
 				if(empty($request['idsel']) && empty($request['custom'])){
 					$buttons = NULL;
@@ -162,13 +147,13 @@ class Endpointman_Templates
 	public function epm_template_custom_config_get_global()
 	{
 		if (! isset($_REQUEST['custom'])) {
-			$retarr = array("status" => false, "message" => _("No send Custom Value!"));
+			$retarr = ["status" => false, "message" => _("No send Custom Value!")];
 		}
 		elseif (! isset($_REQUEST['tid'])) {
-			$retarr = array("status" => false, "message" => _("No send TID!"));
+			$retarr = ["status" => false, "message" => _("No send TID!")];
 		}
 		elseif (! is_numeric($_REQUEST['tid'])) {
-			$retarr = array("status" => false, "message" => _("TID is not number!"));
+			$retarr = ["status" => false, "message" => _("TID is not number!")];
 		}
 		else 
 		{
@@ -196,7 +181,7 @@ class Endpointman_Templates
 				$settings['server_type'] = $this->configmod->get("server_type");
 			}
     		
-			$retarr = array("status" => true, "settings" => $settings, "message" => _("Global Config Read OK!"));
+			$retarr = ["status" => true, "settings" => $settings, "message" => _("Global Config Read OK!")];
 			unset($dget);
 		}
 		return $retarr;
@@ -206,13 +191,13 @@ class Endpointman_Templates
 	public function epm_template_custom_config_update_global ()
 	{
 		if (! isset($_REQUEST['custom'])) {
-			$retarr = array("status" => false, "message" => _("No send Custom Value!"));
+			$retarr = ["status" => false, "message" => _("No send Custom Value!")];
 		}
 		elseif (! isset($_REQUEST['tid'])) {
-			$retarr = array("status" => false, "message" => _("No send TID!"));
+			$retarr = ["status" => false, "message" => _("No send TID!")];
 		}
 		elseif (! is_numeric($_REQUEST['tid'])) {
-			$retarr = array("status" => false, "message" => _("TID is not number!"));
+			$retarr = ["status" => false, "message" => _("TID is not number!")];
 		}
 		else 
 		{
@@ -220,8 +205,8 @@ class Endpointman_Templates
 			$dget['tid'] = $_REQUEST['tid'];
 			
 			
-			$_REQUEST['srvip'] = trim($_REQUEST['srvip']);  #trim whitespace from IP address
-			$_REQUEST['config_loc'] = trim($_REQUEST['config_loc']);  #trim whitespace from Config Location
+			$_REQUEST['srvip'] = trim((string) $_REQUEST['srvip']);  #trim whitespace from IP address
+			$_REQUEST['config_loc'] = trim((string) $_REQUEST['config_loc']);  #trim whitespace from Config Location
 	
 			$settings_warning = "";
 			if (strlen($_REQUEST['config_loc']) > 0) {
@@ -249,10 +234,10 @@ class Endpointman_Templates
 			}
 			
 			$settings['config_location'] = $_REQUEST['config_loc'];
-			$settings['server_type'] = (isset($_REQUEST['server_type']) ? $_REQUEST['server_type'] : "");	//REVISAR NO ESTABA ANTES
-			$settings['srvip'] = (isset($_REQUEST['srvip']) ? $_REQUEST['srvip'] : "");
-			$settings['ntp'] = (isset($_REQUEST['ntp_server']) ? $_REQUEST['ntp_server'] : "");
-			$settings['tz'] = (isset($_REQUEST['tz']) ? $_REQUEST['tz'] : "");
+			$settings['server_type'] = ($_REQUEST['server_type'] ?? "");	//REVISAR NO ESTABA ANTES
+			$settings['srvip'] = ($_REQUEST['srvip'] ?? "");
+			$settings['ntp'] = ($_REQUEST['ntp_server'] ?? "");
+			$settings['tz'] = ($_REQUEST['tz'] ?? "");
 			$settings_ser = serialize($settings);
 			unset($settings);
 			
@@ -267,7 +252,7 @@ class Endpointman_Templates
 			sql($sql);
 			
 			if (strlen($settings_warning) > 0) { $settings_warning = " ".$settings_warning; }
-			$retarr = array("status" => true, "message" => _("Updated!").$settings_warning);
+			$retarr = ["status" => true, "message" => _("Updated!").$settings_warning];
 			unset($dget);
 		}
 		return $retarr;
@@ -277,13 +262,13 @@ class Endpointman_Templates
 	public function epm_template_custom_config_reset_global()
 	{
 		if (! isset($_REQUEST['custom'])) {
-			$retarr = array("status" => false, "message" => _("No send Custom Value!"));
+			$retarr = ["status" => false, "message" => _("No send Custom Value!")];
 		}
 		elseif (! isset($_REQUEST['tid'])) {
-			$retarr = array("status" => false, "message" => _("No send TID!"));
+			$retarr = ["status" => false, "message" => _("No send TID!")];
 		}
 		elseif (! is_numeric($_REQUEST['tid'])) {
-			$retarr = array("status" => false, "message" => _("TID is not number!"));
+			$retarr = ["status" => false, "message" => _("TID is not number!")];
 		}
 		else 
 		{
@@ -299,7 +284,7 @@ class Endpointman_Templates
 			}
 			sql($sql);
 			
-			$retarr = array("status" => true, "message" => _("Globals Reset to Default!"));
+			$retarr = ["status" => true, "message" => _("Globals Reset to Default!")];
 			unset($dget);
 		}
 		return $retarr;
@@ -312,13 +297,13 @@ class Endpointman_Templates
 	public function epm_templates_del_template() 
 	{
 		if (! isset($_REQUEST['idsel'])) {
-			$retarr = array("status" => false, "message" => _("No send ID!"));
+			$retarr = ["status" => false, "message" => _("No send ID!")];
 		}
 		elseif (! is_numeric($_REQUEST['idsel'])) {
-			$retarr = array("status" => false, "message" => _("ID is not number!"));
+			$retarr = ["status" => false, "message" => _("ID is not number!")];
 		}
 		elseif ($_REQUEST['idsel'] <= 0) {
-			$retarr = array("status" => false, "message" => _("ID send is negative!"));
+			$retarr = ["status" => false, "message" => _("ID send is negative!")];
 		}
 		else {
 			$dget['idsel'] = $_REQUEST['idsel'];
@@ -328,7 +313,7 @@ class Endpointman_Templates
 			$sql = "UPDATE endpointman_mac_list SET template_id = 0 WHERE template_id = ".$dget['idsel'];
 			sql($sql);
 			
-			$retarr = array("status" => true, "message" => _("Delete Template OK!"));
+			$retarr = ["status" => true, "message" => _("Delete Template OK!")];
 			unset($dget);
 		}
 		return $retarr;
@@ -336,28 +321,28 @@ class Endpointman_Templates
 	
 	public function epm_templates_add_template ()
 	{
-		$arrVal['VAR_REQUEST'] = array("newnametemplate", "newproductselec", "newclonemodel");
+		$arrVal['VAR_REQUEST'] = ["newnametemplate", "newproductselec", "newclonemodel"];
 		foreach ($arrVal['VAR_REQUEST'] as $valor) {
 			if (! array_key_exists($valor, $_REQUEST)) {
-				return array("status" => false, "message" => _("No send value!")." [".$valor."]");
+				return ["status" => false, "message" => _("No send value!")." [".$valor."]"];
 			}
 		}
 		
-		$arrVal['VAR_IS_NUM'] = array("newproductselec", "newclonemodel");
+		$arrVal['VAR_IS_NUM'] = ["newproductselec", "newclonemodel"];
 		foreach ($arrVal['VAR_IS_NUM'] as $valor) {
 			if (! is_numeric($_REQUEST[$valor])) {
-				return array("status" => false, "message" => _("Value send is not number!")." [".$valor."]");
+				return ["status" => false, "message" => _("Value send is not number!")." [".$valor."]"];
 			}
 		}
 		
 		if (empty($_REQUEST['newnametemplate'])) {
-			$retarr = array("status" => false, "message" => _("Name is null!"));
+			$retarr = ["status" => false, "message" => _("Name is null!")];
 		}
 		elseif ($_REQUEST['newproductselec'] <= 0) {
-			$retarr = array("status" => false, "message" => _("Product send is negative!"));
+			$retarr = ["status" => false, "message" => _("Product send is negative!")];
 		}
 		elseif ($_REQUEST['newclonemodel'] <= 0) {
-			$retarr = array("status" => false, "message" => _("Clone Model send is negative!"));
+			$retarr = ["status" => false, "message" => _("Clone Model send is negative!")];
 		}
 		else {
 			$dget['newnametemplate'] = $_REQUEST['newnametemplate'];
@@ -367,11 +352,11 @@ class Endpointman_Templates
 			$db = $this->db;
 			$sql = "INSERT INTO endpointman_template_list (product_id, name, model_id) VALUES (?,?,?)";
 			$q = $db->prepare($sql);
-			$ob = $q->execute(array($dget['newproductselec'], addslashes($dget['newnametemplate']), $dget['newclonemodel']));
+			$ob = $q->execute([$dget['newproductselec'], addslashes((string) $dget['newnametemplate']), $dget['newclonemodel']]);
 			$newid = $db->lastInsertId();
 			//$this->edit_template_display($newid,0);
 			
-			$retarr = array("status" => true, "message" => _("Add New Template OK!"), "newid" => $newid);
+			$retarr = ["status" => true, "message" => _("Add New Template OK!"), "newid" => $newid];
 			unset($dget);
 		}
 		return $retarr;
@@ -380,20 +365,20 @@ class Endpointman_Templates
 	public function epm_templates_model_clone () 
 	{
 		if (! isset($_REQUEST['id'])) {
-			$retarr = array("status" => false, "message" => _("No send ID!"));
+			$retarr = ["status" => false, "message" => _("No send ID!")];
 		}
 		elseif (! is_numeric($_REQUEST['id'])) {
-			$retarr = array("status" => false, "message" => _("ID send is not number!"));
+			$retarr = ["status" => false, "message" => _("ID send is not number!")];
 		}
 		elseif ($_REQUEST['id'] <= 0) {
-			$retarr = array("status" => false, "message" => _("ID send is number not valid!"));
+			$retarr = ["status" => false, "message" => _("ID send is number not valid!")];
 		}
 		else
 		{
 			$dget['id'] = $_REQUEST['id'];
 			
 			$i=0;
-			$out = array();
+			$out = [];
 			$sql = "SELECT endpointman_model_list.id, endpointman_model_list.model as model FROM endpointman_model_list, endpointman_product_list WHERE endpointman_product_list.id = endpointman_model_list.product_id AND endpointman_model_list.enabled = 1 AND endpointman_model_list.hidden = 0 AND product_id = '". $dget['id']."'";
 			$result = sql($sql,'getAll', DB_FETCHMODE_ASSOC);
 			foreach($result as $row) {
@@ -401,7 +386,7 @@ class Endpointman_Templates
 				$out[$i]['optionDisplay'] = $row['model'];
 				$i++;
 			}
-			$retarr = array("status" => true, "message" => _("Generate list Ok!"), "listopt" => $out);
+			$retarr = ["status" => true, "message" => _("Generate list Ok!"), "listopt" => $out];
 			
 			unset($dget);
 		}
@@ -414,7 +399,7 @@ class Endpointman_Templates
 		$sql = 'SELECT endpointman_template_list.*, endpointman_product_list.short_name as model_class, endpointman_model_list.model as model_clone, endpointman_model_list.enabled FROM endpointman_template_list, endpointman_model_list, endpointman_product_list WHERE endpointman_model_list.hidden = 0 AND endpointman_template_list.model_id = endpointman_model_list.id AND endpointman_template_list.product_id = endpointman_product_list.id';
 		$template_list = sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
 		$i = 0;
-		$row_out = array();
+		$row_out = [];
 		foreach($template_list as $row) {
 			$row_out[$i] = $row;
 			$row_out[$i]['custom'] = 0;
@@ -477,7 +462,7 @@ class Endpointman_Templates
     		die("unable to sync local template files - TYPE:" . $custom);
     	}
 		
-    	$dReturn = array();
+    	$dReturn = [];
 		if ($custom == 0) {
 			$sql = "SELECT endpointman_model_list.max_lines, endpointman_model_list.model as model_name, endpointman_template_list.global_custom_cfg_data,  endpointman_product_list.config_files, endpointman_product_list.short_name, endpointman_product_list.id as product_id, endpointman_model_list.template_data, endpointman_model_list.id as model_id, endpointman_template_list.* FROM endpointman_product_list, endpointman_model_list, endpointman_template_list WHERE endpointman_product_list.id = endpointman_template_list.product_id AND endpointman_template_list.model_id = endpointman_model_list.id AND endpointman_template_list.id = " . $id;
 		} else {
@@ -491,13 +476,13 @@ class Endpointman_Templates
 		} else {
 			$config_files_saved = unserialize($row['config_files_override']);
 		}
-		$config_files_list = explode(",", $row['config_files']);
+		$config_files_list = explode(",", (string) $row['config_files']);
 		asort($config_files_list);
 		
 		$i = 0;
 		$b = 0;
-		$alt_configs = array();
-		$only_configs = array();
+		$alt_configs = [];
+		$only_configs = [];
 		foreach ($config_files_list as $files) 
 		{
 			if ($namefile != $files)  { continue; }
@@ -559,12 +544,12 @@ class Endpointman_Templates
 			$sql = "SELECT endpointman_model_list.max_lines, endpointman_model_list.model as model_name, endpointman_mac_list.global_custom_cfg_data, endpointman_product_list.config_files, endpointman_mac_list.*, endpointman_line_list.*, endpointman_model_list.id as model_id, endpointman_model_list.template_data, endpointman_product_list.id as product_id, endpointman_product_list.short_name, endpointman_product_list.cfg_dir, endpointman_brand_list.directory FROM endpointman_brand_list, endpointman_mac_list, endpointman_model_list, endpointman_product_list, endpointman_line_list WHERE endpointman_mac_list.id=" . $id . " AND endpointman_mac_list.id = endpointman_line_list.mac_id AND endpointman_mac_list.model = endpointman_model_list.id AND endpointman_model_list.brand = endpointman_brand_list.id AND endpointman_model_list.product_id = endpointman_product_list.id";
 		}
 		$row = sql($sql, 'getRow', DB_FETCHMODE_ASSOC);
-		$config_files_list = explode(",", $row['config_files']);
+		$config_files_list = explode(",", (string) $row['config_files']);
 		asort($config_files_list);
 		
 		$i = 0;
 		$b = 0;
-		$dReturn = array();
+		$dReturn = [];
 		foreach ($config_files_list as $files) 
 		{
 			$dReturn[$b]['id'] = $b;
@@ -606,7 +591,7 @@ class Endpointman_Templates
     		die("unable to sync local template files - TYPE:" . $custom);
     	}
    
-    	$dReturn = array();
+    	$dReturn = [];
 
     	
 		//Determine if we are dealing with a general template or a specific [for that phone only] template (custom =0 means general)
@@ -650,13 +635,13 @@ class Endpointman_Templates
 		} else {
 			$config_files_saved = unserialize($row['config_files_override']);
 		}
-		$config_files_list = explode(",", $row['config_files']);
+		$config_files_list = explode(",", (string) $row['config_files']);
 		asort($config_files_list);
 		
 		$alt = 0;
 		$i = 0;
 		$b = 0;
-		$only_configs = array();
+		$only_configs = [];
 		foreach ($config_files_list as $files) {
 			$sql = "SELECT * FROM  endpointman_custom_configs WHERE product_id = '" . $row['product_id'] . "' AND original_name = '" . $files . "'";
 			$alt_configs_list_count = sql($sql, 'getAll', DB_FETCHMODE_ASSOC );
@@ -808,17 +793,17 @@ class Endpointman_Templates
     			}
     			$custom_cfg_data = $custom_cfg_data['data'];
     		} else {
-    			$extra_data = array();
+    			$extra_data = [];
     		}
     	} else {
-    		$custom_cfg_data = array();
-    		$extra_data = array();
+    		$custom_cfg_data = [];
+    		$extra_data = [];
     	}
     	if (isset($user_cfg_data)) {
     		$user_cfg_data = unserialize($user_cfg_data);
     	}
     
-    	$template_variables_array = array();
+    	$template_variables_array = [];
     	$group_count = 0;
     	$variables_count = 0;
     
@@ -832,7 +817,7 @@ class Endpointman_Templates
     		}
     		foreach ($cats as $subcat_name => $subcats) {
     			foreach ($subcats as $item_var => $config_options) {
-    				if (preg_match('/(.*)\|(.*)/i', $item_var, $matches)) {
+    				if (preg_match('/(.*)\|(.*)/i', (string) $item_var, $matches)) {
     					$type = $matches[1];
     					$variable = $matches[2];
     				} else {
@@ -844,7 +829,7 @@ class Endpointman_Templates
     						case "lineloop":
     							//line|1|display_name
     							foreach ($config_options as $var_name => $var_items) {
-    								$lcount = isset($var_items['line_count']) ? $var_items['line_count'] : $lcount;
+    								$lcount = $var_items['line_count'] ?? $lcount;
     								$key = "line|" . $lcount . "|" . $var_name;
     								$items[$variables_count] = $items;
     								$template_variables_array[$group_count]['data'][$variables_count] = $this->generate_form_data($variables_count, $var_items, $key, $custom_cfg_data, $admin, $user_cfg_data, $extra_data, $template_type);
@@ -955,7 +940,7 @@ class Endpointman_Templates
     				$template_variables_array['max_chars'] = $cfg_data['max_chars'];
     			}
     			$template_variables_array['key'] = $key;
-    			$template_variables_array['value'] = isset($custom_cfg_data[$key]) ? $custom_cfg_data[$key] : $cfg_data['default_value'];
+    			$template_variables_array['value'] = $custom_cfg_data[$key] ?? $cfg_data['default_value'];
     			$template_variables_array['description'] = $cfg_data['description'];
     			break;
     			
@@ -963,7 +948,7 @@ class Endpointman_Templates
     			if ((!$admin) && (isset($user_cfg_data[$key]))) {
     				$custom_cfg_data[$key] = $user_cfg_data[$key];
     			}
-    			$num = isset($custom_cfg_data[$key]) ? $custom_cfg_data[$key] : $cfg_data['default_value'];
+    			$num = $custom_cfg_data[$key] ?? $cfg_data['default_value'];
     			$template_variables_array['type'] = "radio";
     			$template_variables_array['key'] = $key;
     			$template_variables_array['description'] = $cfg_data['description'];
@@ -983,7 +968,7 @@ class Endpointman_Templates
     			if ((!$admin) && (isset($user_cfg_data[$key]))) {
     				$custom_cfg_data[$key] = $user_cfg_data[$key];
     			}
-    			$num = isset($custom_cfg_data[$key]) ? $custom_cfg_data[$key] : $cfg_data['default_value'];
+    			$num = $custom_cfg_data[$key] ?? $cfg_data['default_value'];
     			$template_variables_array['type'] = "list";
     			$template_variables_array['key'] = $key;
     			$template_variables_array['description'] = $cfg_data['description'];
@@ -1010,7 +995,7 @@ class Endpointman_Templates
     			if ((!$admin) && (isset($user_cfg_data[$key]))) {
     				$custom_cfg_data[$key] = $user_cfg_data[$key];
     			}
-    			$num = isset($custom_cfg_data[$key]) ? $custom_cfg_data[$key] : $cfg_data['default_value'];
+    			$num = $custom_cfg_data[$key] ?? $cfg_data['default_value'];
     			$template_variables_array['type'] = "checkbox";
     			$template_variables_array['key'] = $key;
     			$template_variables_array['description'] = $cfg_data['description'];
@@ -1040,7 +1025,7 @@ class Endpointman_Templates
     				$template_variables_array['cols'] = $cfg_data['cols'];
     			}
     			$template_variables_array['key'] = $key;
-    			$template_variables_array['value'] = isset($custom_cfg_data[$key]) ? $custom_cfg_data[$key] : $cfg_data['default_value'];
+    			$template_variables_array['value'] = $custom_cfg_data[$key] ?? $cfg_data['default_value'];
     			$template_variables_array['description'] = $cfg_data['description'];
     			break;
     			

@@ -37,9 +37,9 @@
 	}
 	$dtemplate = FreePBX::Endpointman()->epm_templates->edit_template_display($_REQUEST['idsel'],$_REQUEST['custom']);
 	
-	echo load_view(__DIR__.'/epm_templates/editor.views.template.php', array('request' => $_REQUEST, 'dtemplate' => $dtemplate ));
-	echo load_view(__DIR__.'/epm_templates/editor.views.dialog.cfg.global.php', array('request' => $_REQUEST));
-	echo load_view(__DIR__.'/epm_templates/editor.views.dialog.edit.cfg.php', array('request' => $_REQUEST, 'dtemplate' => $dtemplate ));
+	echo load_view(__DIR__.'/epm_templates/editor.views.template.php', ['request' => $_REQUEST, 'dtemplate' => $dtemplate ]);
+	echo load_view(__DIR__.'/epm_templates/editor.views.dialog.cfg.global.php', ['request' => $_REQUEST]);
+	echo load_view(__DIR__.'/epm_templates/editor.views.dialog.edit.cfg.php', ['request' => $_REQUEST, 'dtemplate' => $dtemplate ]);
 	
 	unset ($dtemplate);
 ?>

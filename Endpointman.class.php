@@ -10,7 +10,7 @@
 
 namespace FreePBX\modules;
 
-function format_txt($texto = "", $css_class = "", $remplace_txt = array())
+function format_txt($texto = "", $css_class = "", $remplace_txt = [])
 {
 	if (count($remplace_txt) > 0)
 	{
@@ -37,7 +37,7 @@ function generate_xml_from_array ($array, $node_name, &$tab = -1)
 
 		}
 	} else {
-		$xml = str_repeat("	", $tab) . htmlspecialchars($array, ENT_QUOTES) . "\n";
+		$xml = str_repeat("	", $tab) . htmlspecialchars((string) $array, ENT_QUOTES) . "\n";
 	}
 	$tab--;
 	return $xml;
@@ -87,8 +87,8 @@ class Endpointman implements \BMO {
 		$this->eda->global_cfg = $this->configmod->getall();
 
         //Generate empty array
-        $this->error = array();
-        $this->message = array();
+        $this->error = [];
+        $this->message = [];
 
 
 		$this->configmod->set('tz', $this->config->get('PHPTIMEZONE'));
@@ -162,10 +162,10 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
 		$this->epm_config = new Endpointman_Config($freepbx, $this->configmod, $this->system);
 
 		require_once('Endpointman_Advanced.class.php');
-		$this->epm_advanced = new Endpointman_Advanced($freepbx, $this->configmod, $this->epm_config);
+		$this->epm_advanced = new Endpointman_Advanced($this->epm_config, $freepbx, $this->configmod);
 
 		require_once('Endpointman_Templates.class.php');
-		$this->epm_templates = new Endpointman_Templates($freepbx, $this->configmod, $this->epm_config, $this->eda);
+		$this->epm_templates = new Endpointman_Templates($this->epm_config, $this->eda, $freepbx, $this->configmod);
 
 		require_once('Endpointman_Devices.class.php');
 		$this->epm_devices = new Endpointman_Devices($freepbx, $this->configmod);
@@ -181,16 +181,16 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
 	public function chownFreepbx() {
 		$webroot = $this->config->get('AMPWEBROOT');
 		$modulesdir = $webroot . '/admin/modules/';
-		$files = array();
-		$files[] = array('type' => 'dir',
+		$files = [];
+		$files[] = ['type' => 'dir',
 						'path' => $modulesdir . '/_ep_phone_modules/',
-						'perms' => 0755);
-		$files[] = array('type' => 'file',
+						'perms' => 0755];
+		$files[] = ['type' => 'file',
 						'path' => $modulesdir . '/_ep_phone_modules/setup.php',
-						'perms' => 0755);
-		$files[] = array('type' => 'dir',
+						'perms' => 0755];
+		$files[] = ['type' => 'dir',
 						'path' => '/tftpboot',
-						'perms' => 0755);
+						'perms' => 0755];
 		return $files;
 	}
 
@@ -201,79 +201,42 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
 		$setting['allowremote'] = true;
 		return true;
 
-		$module_sec = isset($_REQUEST['module_sec'])? trim($_REQUEST['module_sec']) : '';
+		$module_sec = isset($_REQUEST['module_sec'])? trim((string) $_REQUEST['module_sec']) : '';
 		if ($module_sec == "") { return false; }
-
-		switch($module_sec)
-		{
-			case "epm_devices":
-				return $this->epm_devices->ajaxRequest(trim($req), $setting);
-				break;
-
-			case "epm_oss":
-				return $this->epm_oss->ajaxRequest(trim($req), $setting);
-				break;
-
-			case "epm_placeholders":
-				return $this->epm_placeholders->ajaxRequest(trim($req), $setting);
-				break;
-
-			case "epm_config":
-				return $this->epm_config->ajaxRequest(trim($req), $setting);
-				break;
-
-			case "epm_advanced":
-				return $this->epm_advanced->ajaxRequest(trim($req), $setting);
-				break;
-
-			case "epm_templates":
-				return $this->epm_templates->ajaxRequest(trim($req), $setting);
-				break;
-		}
-        return false;
+        return match ($module_sec) {
+            "epm_devices" => $this->epm_devices->ajaxRequest(trim((string) $req), $setting),
+            "epm_oss" => $this->epm_oss->ajaxRequest(trim((string) $req), $setting),
+            "epm_placeholders" => $this->epm_placeholders->ajaxRequest(trim((string) $req), $setting),
+            "epm_config" => $this->epm_config->ajaxRequest(trim((string) $req), $setting),
+            "epm_advanced" => $this->epm_advanced->ajaxRequest(trim((string) $req), $setting),
+            "epm_templates" => $this->epm_templates->ajaxRequest(trim((string) $req), $setting),
+            default => false,
+        };
     }
 
     public function ajaxHandler() {
 
-		$module_sec = isset($_REQUEST['module_sec'])? trim($_REQUEST['module_sec']) : '';
-		$module_tab = isset($_REQUEST['module_tab'])? trim($_REQUEST['module_tab']) : '';
-		$command = isset($_REQUEST['command'])? trim($_REQUEST['command']) : '';
+		$module_sec = isset($_REQUEST['module_sec'])? trim((string) $_REQUEST['module_sec']) : '';
+		$module_tab = isset($_REQUEST['module_tab'])? trim((string) $_REQUEST['module_tab']) : '';
+		$command = isset($_REQUEST['command'])? trim((string) $_REQUEST['command']) : '';
 
 		if ($command == "") {
-			return array("status" => false, "message" => _("No command was sent!"));
+			return ["status" => false, "message" => _("No command was sent!")];
 		}
 
-		$arrVal['mod_sec'] = array("epm_devices", "epm_oss", "epm_placeholders", "epm_templates", "epm_config", "epm_advanced");
+		$arrVal['mod_sec'] = ["epm_devices", "epm_oss", "epm_placeholders", "epm_templates", "epm_config", "epm_advanced"];
 		if (! in_array($module_sec, $arrVal['mod_sec'])) {
-			return array("status" => false, "message" => _("Invalid section module!"));
+			return ["status" => false, "message" => _("Invalid section module!")];
 		}
-
-		switch ($module_sec)
-		{
-			case "epm_devices":
-				return $this->epm_devices->ajaxHandler($module_tab, $command);
-				break;
-
-			case "epm_oss":
-				return $this->epm_oss->ajaxHandler($module_tab, $command);
-				break;
-			case "epm_placeholders":
-				return $this->epm_placeholders->ajaxHandler($module_tab, $command);
-				break;
-
-			case "epm_templates":
-				return $this->epm_templates->ajaxHandler($module_tab, $command);
-				break;
-
-			case "epm_config":
-				return $this->epm_config->ajaxHandler($module_tab, $command);
-				break;
-
-			case "epm_advanced":
-				return $this->epm_advanced->ajaxHandler($module_tab, $command);
-				break;
-		}
-		return false;
+        return match ($module_sec) {
+            "epm_devices" => $this->epm_devices->ajaxHandler($module_tab, $command),
+            "epm_oss" => $this->epm_oss->ajaxHandler($module_tab, $command),
+            "epm_placeholders" => $this->epm_placeholders->ajaxHandler($module_tab, $command),
+            "epm_templates" => $this->epm_templates->ajaxHandler($module_tab, $command),
+            "epm_config" => $this->epm_config->ajaxHandler($module_tab, $command),
+            "epm_advanced" => $this->epm_advanced->ajaxHandler($module_tab, $command),
+            default => false,
+        };
     }
 
 	public static function myDialplanHooks() {
@@ -282,14 +245,14 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
 
 	public function doConfigPageInit($page) {
 		//TODO: Pendiente revisar y eliminar moule_tab.
-		$module_tab = isset($_REQUEST['module_tab'])? trim($_REQUEST['module_tab']) : '';
+		$module_tab = isset($_REQUEST['module_tab'])? trim((string) $_REQUEST['module_tab']) : '';
 		if ($module_tab == "") {
-			$module_tab = isset($_REQUEST['subpage'])? trim($_REQUEST['subpage']) : '';
+			$module_tab = isset($_REQUEST['subpage'])? trim((string) $_REQUEST['subpage']) : '';
 		}
-		$command = isset($_REQUEST['command'])? trim($_REQUEST['command']) : '';
+		$command = isset($_REQUEST['command'])? trim((string) $_REQUEST['command']) : '';
 
 
-		$arrVal['mod_sec'] = array("epm_devices","epm_oss", "epm_placeholders", "epm_templates", "epm_config", "epm_advanced");
+		$arrVal['mod_sec'] = ["epm_devices","epm_oss", "epm_placeholders", "epm_templates", "epm_config", "epm_advanced"];
 		if (! in_array($page, $arrVal['mod_sec'])) {
 			die(_("Invalid section module!"));
 		}
@@ -376,36 +339,17 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
 			return '';
 		else {
 			//return load_view(dirname(__FILE__).'/views/rnav.php',array());
-			return load_view(dirname(__FILE__) . '/views/rnav.php', $var);
+			return load_view(__DIR__ . '/views/rnav.php', $var);
 		}
-		switch($_REQUEST['display'])
-		{
-			case "epm_devices":
-				return load_view(dirname(__FILE__) . '/views/rnav.php', $var);
-				break;
-			case "epm_oss":
-				return load_view(dirname(__FILE__) . '/views/rnav.php', $var);
-				break;
-			case "epm_placeholders":
-				return load_view(dirname(__FILE__) . '/views/rnav.php', $var);
-				break;
-
-			case "epm_config":
-				return load_view(dirname(__FILE__) . '/views/rnav.php', $var);
-				break;
-
-			case "epm_advanced":
-				return load_view(dirname(__FILE__) . '/views/rnav.php', $var);
-				break;
-
-			case "epm_templates":
-				return load_view(dirname(__FILE__) . '/views/rnav.php', $var);
-				break;
-
-			default:
-		        return '';
-
-		}
+		return match ($_REQUEST['display']) {
+            "epm_devices" => load_view(__DIR__ . '/views/rnav.php', $var),
+            "epm_oss" => load_view(__DIR__ . '/views/rnav.php', $var),
+            "epm_placeholders" => load_view(__DIR__ . '/views/rnav.php', $var),
+            "epm_config" => load_view(__DIR__ . '/views/rnav.php', $var),
+            "epm_advanced" => load_view(__DIR__ . '/views/rnav.php', $var),
+            "epm_templates" => load_view(__DIR__ . '/views/rnav.php', $var),
+            default => '',
+        };
 	}
 
 	//http://wiki.freepbx.org/pages/viewpage.action?pageId=29753755
@@ -413,34 +357,15 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
 			if (! isset($_REQUEST['display']))
 			return '';
 
-		switch($_REQUEST['display'])
-		{
-			case "epm_devices":
-				return $this->epm_devices->getActionBar($request);
-				break;
-
-			case "epm_oss":
-				return $this->epm_oss->getActionBar($request);
-				break;
-			case "epm_placeholders":
-				return $this->epm_placeholders->getActionBar($request);
-				break;
-			case "epm_config":
-				return $this->epm_config->getActionBar($request);
-				break;
-
-			case "epm_advanced":
-				return $this->epm_advanced->getActionBar($request);
-				break;
-
-			case "epm_templates":
-				return $this->epm_templates->getActionBar($request);
-				break;
-
-			default:
-		        return '';
-
-		}
+		return match ($_REQUEST['display']) {
+            "epm_devices" => $this->epm_devices->getActionBar($request),
+            "epm_oss" => $this->epm_oss->getActionBar($request),
+            "epm_placeholders" => $this->epm_placeholders->getActionBar($request),
+            "epm_config" => $this->epm_config->getActionBar($request),
+            "epm_advanced" => $this->epm_advanced->getActionBar($request),
+            "epm_templates" => $this->epm_templates->getActionBar($request),
+            default => '',
+        };
 	}
 
 	public function install() {
@@ -621,7 +546,7 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
         foreach ($data as $key => $row) {
             $temp[$i]['value'] = $row;
             $temp[$i]['text'] = $row;
-            if (strtoupper ($temp[$i]['value']) == strtoupper($selected)) {
+            if (strtoupper ((string) $temp[$i]['value']) == strtoupper((string) $selected)) {
                 $temp[$i]['selected'] = 1;
             } else {
                 $temp[$i]['selected'] = 0;
@@ -656,7 +581,7 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
             sql($sql);
             $subject = shell_exec("netstat -luan --numeric-ports");
             if (preg_match('/:69\s/i', $subject)) {
-                $rand = md5(rand(10, 2000));
+                $rand = md5(random_int(10, 2000));
                 if (file_put_contents($this->configmod->get('config_location') . 'TEST', $rand)) {
                     if ($this->system->tftp_fetch('127.0.0.1', 'TEST') != $rand) {
                         $this->error['tftp_check'] = 'Local TFTP Server is not correctly configured';
@@ -704,11 +629,11 @@ echo 'TFTP Server check failed on last past. Skipping';
     	$posturl = 'http://www.provisioner.net/submit_config.php';
 
     	$fp = fopen($this->LOCAL_PATH . 'data.txt', 'w');
-    	fwrite($fp, $data);
+    	fwrite($fp, (string) $data);
     	fclose($fp);
     	$file_name_with_full_path = $this->LOCAL_PATH . "data.txt";
 
-    	$postvars = array('brand' => $brand, 'product' => $product, 'origname' => htmlentities(addslashes($orig_name)), 'file_contents' => '@' . $file_name_with_full_path);
+    	$postvars = ['brand' => $brand, 'product' => $product, 'origname' => htmlentities(addslashes((string) $orig_name)), 'file_contents' => '@' . $file_name_with_full_path];
 
     	$ch = curl_init($posturl);
     	curl_setopt($ch, CURLOPT_POST, 1);
@@ -1991,12 +1916,12 @@ $this->error['parse_configs'] = "File not written to hard drive!";
         $cfg_data = unserialize($row['template_data']);
         $count = count($cfg_data);
 
-        $custom_cfg_data_ari = array();
+        $custom_cfg_data_ari = [];
 
         foreach ($cfg_data['data'] as $cats) {
             foreach ($cats as $items) {
                 foreach ($items as $key_name => $config_options) {
-                    if (preg_match('/(.*)\|(.*)/i', $key_name, $matches)) {
+                    if (preg_match('/(.*)\|(.*)/i', (string) $key_name, $matches)) {
                         $type = $matches[1];
                         $key = $matches[2];
                     } else {
@@ -2007,7 +1932,7 @@ $this->error['parse_configs'] = "File not written to hard drive!";
                             $stuffing = explode("_", $key);
                             $key2 = $stuffing[0];
                             foreach ($config_options as $item_key => $item_data) {
-                                $lc = isset($item_data['loop_count']) ? $item_data['loop_count'] : '';
+                                $lc = $item_data['loop_count'] ?? '';
                                 $key = 'loop|' . $key2 . '_' . $item_key . '_' . $lc;
                                 if ((isset($item_data['loop_count'])) AND (isset($variables[$key]))) {
                                     $custom_cfg_data[$key] = $variables[$key];
@@ -2022,7 +1947,7 @@ $this->error['parse_configs'] = "File not written to hard drive!";
                             break;
                         case "lineloop":
                             foreach ($config_options as $item_key => $item_data) {
-                                $lc = isset($item_data['line_count']) ? $item_data['line_count'] : '';
+                                $lc = $item_data['line_count'] ?? '';
                                 $key = 'line|' . $lc . '|' . $item_key;
                                 if ((isset($item_data['line_count'])) AND (isset($variables[$key]))) {
                                     $custom_cfg_data[$key] = $variables[$key];
@@ -2053,15 +1978,15 @@ $this->error['parse_configs'] = "File not written to hard drive!";
             }
         }
 
-        $config_files = explode(",", $row['config_files']);
+        $config_files = explode(",", (string) $row['config_files']);
 
         $i = 0;
         while ($i < count($config_files)) {
             $config_files[$i] = str_replace(".", "_", $config_files[$i]);
 
-            if (isset($variables[config_files][$i])) {
+            if (isset($variables[\CONFIG_FILES][$i])) {
 
-                $variables[$config_files[$i]] = explode("_", $variables[config_files][$i], 2);
+                $variables[$config_files[$i]] = explode("_", $variables[\CONFIG_FILES][$i], 2);
 
                 $variables[$config_files[$i]] = $variables[$config_files[$i]][0];
                 if ($variables[$config_files[$i]] > 0) {
@@ -2091,7 +2016,7 @@ $this->error['parse_configs'] = "File not written to hard drive!";
         }
         sql($sql);
 
-        $phone_info = array();
+        $phone_info = [];
 /*
         if ($custom != 0) {
             $phone_info = $this->get_phone_info($id);

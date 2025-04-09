@@ -22,7 +22,7 @@ class Text_Diff_Renderer {
      * This should be left at zero for this class, but subclasses may want to
      * set this to other values.
      */
-    var $_leading_context_lines = 0;
+    public $_leading_context_lines = 0;
 
     /**
      * Number of trailing context "lines" to preserve.
@@ -30,12 +30,12 @@ class Text_Diff_Renderer {
      * This should be left at zero for this class, but subclasses may want to
      * set this to other values.
      */
-    var $_trailing_context_lines = 0;
+    public $_trailing_context_lines = 0;
 
     /**
      * Constructor.
      */
-    function __construct($params = array())
+    function __construct($params = [])
     {
         foreach ($params as $param => $value) {
             $v = '_' . $param;
@@ -52,7 +52,7 @@ class Text_Diff_Renderer {
      */
     function getParams()
     {
-        $params = array();
+        $params = [];
         foreach (get_object_vars($this) as $k => $v) {
             if ($k[0] == '_') {
                 $params[substr($k, 1)] = $v;
@@ -73,7 +73,7 @@ class Text_Diff_Renderer {
     {
         $xi = $yi = 1;
         $block = false;
-        $context = array();
+        $context = [];
 
         $nlead = $this->_leading_context_lines;
         $ntrail = $this->_trailing_context_lines;
@@ -118,7 +118,7 @@ class Text_Diff_Renderer {
                     $context = array_slice($context, count($context) - $nlead);
                     $x0 = $xi - count($context);
                     $y0 = $yi - count($context);
-                    $block = array();
+                    $block = [];
                     if ($context) {
                         $block[] = new Text_Diff_Op_copy($context);
                     }
@@ -148,7 +148,7 @@ class Text_Diff_Renderer {
         $output = $this->_startBlock($this->_blockHeader($xbeg, $xlen, $ybeg, $ylen));
 
         foreach ($edits as $edit) {
-            switch (strtolower(get_class($edit))) {
+            switch (strtolower($edit::class)) {
             case 'text_diff_op_copy':
                 $output .= $this->_context($edit->orig);
                 break;

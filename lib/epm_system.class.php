@@ -45,14 +45,14 @@ class epm_system {
             socket_recvfrom($socket, $buffer, 516, 0, $host, $port);
 
             // add the block number from the data packet to the ack packet
-            $packet = chr(0) . chr(4) . substr($buffer, 2, 2);
+            $packet = chr(0) . chr(4) . substr((string) $buffer, 2, 2);
             // send ack
             socket_sendto($socket, $packet, strlen($packet), 0, $host, $port);
 
             // append the data to the return variable
             // for large files this function should take a file handle as an arg
-            $ret .= substr($buffer, 4);
-        } while (strlen($buffer) == 516);  // the first non-full packet is the last.
+            $ret .= substr((string) $buffer, 4);
+        } while (strlen((string) $buffer) == 516);  // the first non-full packet is the last.
         return $ret;
     }
 
@@ -104,7 +104,7 @@ class epm_system {
     * @param string $destination_file Destination of file
     * @package epm_system
     */
-    function download_file($url_file, $destination_file, &$error = array()) {
+    function download_file($url_file, $destination_file, &$error = []) {
 			$dir = dirname($destination_file);
 			if(!file_exists($dir)) {
 				mkdir($dir);
@@ -150,9 +150,9 @@ class epm_system {
     * @param string $destination_file Destination of file
     * @package epm_system
     */
-    function download_file_with_progress_bar($url_file, $destination_file, &$error = array()) {
+    function download_file_with_progress_bar($url_file, $destination_file, &$error = []) {
 	    set_time_limit(0);
-	    $headers = get_headers($url_file, 1);
+	    $headers = get_headers($url_file, true);
 	    $size = $headers['Content-Length'];
 	    $randnumid = sprintf("%08d", mt_rand(1,99999999));
 
@@ -161,7 +161,7 @@ class epm_system {
 		    mkdir($dir);
 	    }
 
-	    if (preg_match('/200/', $headers[0])) {
+	    if (preg_match('/200/', (string) $headers[0])) {
 		    dbug("wget --no-cache " . $url_file . " -O " . $destination_file);
 		    $pid = $this->run_in_background("wget --no-cache " . $url_file . " -O " . $destination_file);
 
@@ -217,18 +217,18 @@ class epm_system {
      * @return array
      * @package epm_system
      */
-    public function arraysearchrecursive($Needle, $Haystack, $NeedleKey="", $Strict=false, $Path=array()) {
+    public function arraysearchrecursive($Needle, $Haystack, $NeedleKey="", $Strict=false, $Path=[]) {
         if (!is_array($Haystack))
             return false;
         foreach ($Haystack as $Key => $Val) {
             if (is_array($Val) &&
                     $SubPath = $this->arraysearchrecursive($Needle, $Val, $NeedleKey, $Strict, $Path)) {
-                $Path = array_merge($Path, Array($Key), $SubPath);
+                $Path = array_merge($Path, [$Key], $SubPath);
                 return $Path;
             } elseif ((!$Strict && $Val == $Needle &&
-                    $Key == (strlen($NeedleKey) > 0 ? $NeedleKey : $Key)) ||
+                    $Key == (strlen((string) $NeedleKey) > 0 ? $NeedleKey : $Key)) ||
                     ($Strict && $Val === $Needle &&
-                    $Key == (strlen($NeedleKey) > 0 ? $NeedleKey : $Key))) {
+                    $Key == (strlen((string) $NeedleKey) > 0 ? $NeedleKey : $Key))) {
                 $Path[] = $Key;
                 return $Path;
             }
@@ -272,7 +272,7 @@ class epm_system {
         if (!empty($_ENV['TEMP'])) {
             return realpath($_ENV['TEMP']);
         }
-        $tempfile = tempnam(uniqid(rand(), TRUE), '');
+        $tempfile = tempnam(uniqid(random_int(0, mt_getrandmax()), TRUE), '');
         if (file_exists($tempfile)) {
             unlink($tempfile);
             return realpath(dirname($tempfile));

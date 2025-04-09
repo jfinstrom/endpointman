@@ -27,14 +27,14 @@ class Text_Diff_Renderer_context extends Text_Diff_Renderer {
     /**
      * Number of leading context "lines" to preserve.
      */
-    var $_leading_context_lines = 4;
+    public $_leading_context_lines = 4;
 
     /**
      * Number of trailing context "lines" to preserve.
      */
-    var $_trailing_context_lines = 4;
+    public $_trailing_context_lines = 4;
 
-    var $_second_block = '';
+    public $_second_block = '';
 
     function _blockHeader($xbeg, $xlen, $ybeg, $ylen)
     {

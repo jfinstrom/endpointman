@@ -22,10 +22,10 @@ class Endpointman_Devices
 	public function myShowPage(&$pagedata) {
 		if(empty($pagedata))
 		{
-			$pagedata['main'] = array(
+			$pagedata['main'] = [
 					"name" => _("Devices"),
 					"page" => 'views/epm_devices_main.page.php'
-			);
+			];
 		}
 	}
 
@@ -49,12 +49,12 @@ class Endpointman_Devices
 			switch ($command)
 			{
 				default:
-					$retarr = array("status" => false, "message" => _("Command not found!") . " [" .$command. "]");
+					$retarr = ["status" => false, "message" => _("Command not found!") . " [" .$command. "]"];
 					break;
 			}
 		}
 		else {
-			$retarr = array("status" => false, "message" => _("Tab not found!") . " [" .$module_tab. "]");
+			$retarr = ["status" => false, "message" => _("Tab not found!") . " [" .$module_tab. "]"];
 		}
 		return $retarr;
 	}

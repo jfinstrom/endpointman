@@ -8,7 +8,7 @@
  */
 
 $check_for_updates = FALSE;
-$action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
+$action = $_REQUEST['action'] ?? '';
 
 echo $endpoint->tpl->draw('global_header');
 if (!isset($_REQUEST['subpage'])) {
@@ -26,14 +26,14 @@ switch ($_REQUEST['subpage']) {
 
         if((isset($_REQUEST['button_install'])) OR (isset($_REQUEST['button_update']))) {
             if(isset($_REQUEST['brand'])) {
-                $installer = array("type" => 'brand', "id" => $_REQUEST['brand']);
+                $installer = ["type" => 'brand', "id" => $_REQUEST['brand']];
             }
         } elseif(isset($_REQUEST['product'])) {
             if(isset($_REQUEST['button_install_firmware'])) {
-                $installer = array("type" => 'firmware', "id" => $_REQUEST['product']);
+                $installer = ["type" => 'firmware', "id" => $_REQUEST['product']];
             } elseif(isset($_REQUEST['button_update_firmware'])) {
                 $endpoint->remove_firmware($_REQUEST['product']);
-            $installer = array("type" => 'firmware', "id" => $_REQUEST['product']);
+            $installer = ["type" => 'firmware', "id" => $_REQUEST['product']];
             } elseif(isset($_REQUEST['button_remove_firmware'])) {
                 $endpoint->remove_firmware($_REQUEST['product']);
                 $message = "Firmware Removed";
@@ -63,14 +63,14 @@ switch ($_REQUEST['subpage']) {
 
             $check_for_updates = TRUE;
         } elseif(isset($_REQUEST['install-jstree'])) {
-                $installer = array("type" => 'js-multiple', "id" => $_REQUEST['hidden']);
+                $installer = ["type" => 'js-multiple', "id" => $_REQUEST['hidden']];
         }
 
         $sql="SELECT * from endpointman_brand_list WHERE id > 0 AND hidden = 0 ORDER BY id ASC ";
         $brand_list = $endpoint->eda->sql($sql,'getAll',DB_FETCHMODE_ASSOC);
         $i = 0;
         $note = "";
-        $row_out = array();
+        $row_out = [];
         foreach($brand_list as $row) {
             $row_out[$i] = $row;
                 $row_out[$i]['cfg_ver'] = date("n-j-y",$row['cfg_ver']) . " at " . date("g:ia",$row['cfg_ver']);

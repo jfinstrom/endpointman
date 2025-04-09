@@ -31,7 +31,7 @@ class Text_Diff_ThreeWay extends Text_Diff {
      *
      * @var integer
      */
-    var $_conflictingBlocks = 0;
+    public $_conflictingBlocks = 0;
 
     /**
      * Computes diff between 3 sequences of strings.
@@ -56,16 +56,16 @@ class Text_Diff_ThreeWay extends Text_Diff {
      */
     function mergedOutput($label1 = false, $label2 = false)
     {
-        $lines = array();
+        $lines = [];
         foreach ($this->_edits as $edit) {
             if ($edit->isConflict()) {
                 /* FIXME: this should probably be moved somewhere else. */
                 $lines = array_merge($lines,
-                                     array('<<<<<<<' . ($label1 ? ' ' . $label1 : '')),
+                                     ['<<<<<<<' . ($label1 ? ' ' . $label1 : '')],
                                      $edit->final1,
-                                     array("======="),
+                                     ["======="],
                                      $edit->final2,
-                                     array('>>>>>>>' . ($label2 ? ' ' . $label2 : '')));
+                                     ['>>>>>>>' . ($label2 ? ' ' . $label2 : '')]);
                 $this->_conflictingBlocks++;
             } else {
                 $lines = array_merge($lines, $edit->merged());
@@ -80,7 +80,7 @@ class Text_Diff_ThreeWay extends Text_Diff {
      */
     function _diff3($edits1, $edits2)
     {
-        $edits = array();
+        $edits = [];
         $bb = new Text_Diff_ThreeWay_BlockBuilder();
 
         $e1 = current($edits1);
@@ -159,9 +159,9 @@ class Text_Diff_ThreeWay_Op {
 
     function __construct($orig = false, $final1 = false, $final2 = false)
     {
-        $this->orig = $orig ? $orig : array();
-        $this->final1 = $final1 ? $final1 : array();
-        $this->final2 = $final2 ? $final2 : array();
+        $this->orig = $orig ?: [];
+        $this->final1 = $final1 ?: [];
+        $this->final2 = $final2 ?: [];
     }
 
     function merged()
@@ -198,7 +198,7 @@ class Text_Diff_ThreeWay_Op_copy extends Text_Diff_ThreeWay_Op {
 
     function __construct($lines = false)
     {
-        $this->orig = $lines ? $lines : array();
+        $this->orig = $lines ?: [];
         $this->final1 = &$this->orig;
         $this->final2 = &$this->orig;
     }
@@ -267,7 +267,7 @@ class Text_Diff_ThreeWay_BlockBuilder {
 
     function _init()
     {
-        $this->orig = $this->final1 = $this->final2 = array();
+        $this->orig = $this->final1 = $this->final2 = [];
     }
 
     function _append(&$array, $lines)

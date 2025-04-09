@@ -6,13 +6,13 @@
     <div class="row">
         <div class="col-sm-9">
         <?php
-        	echo load_view(__DIR__.'/epm_advanced/poce.views.button.up.files.php', array('request' => $_REQUEST));
-        	echo load_view(__DIR__.'/epm_advanced/poce.views.textarea.file.php', array('request' => $_REQUEST));
+        	echo load_view(__DIR__.'/epm_advanced/poce.views.button.up.files.php', ['request' => $_REQUEST]);
+        	echo load_view(__DIR__.'/epm_advanced/poce.views.textarea.file.php', ['request' => $_REQUEST]);
         ?>
         </div>
         <div class="col-sm-3 bootnav">
 			<?php
-				echo load_view(__DIR__.'/epm_advanced/poce.views.bootnav.php', array('request' => $_REQUEST));
+				echo load_view(__DIR__.'/epm_advanced/poce.views.bootnav.php', ['request' => $_REQUEST]);
 			?>
         </div>
     </div>

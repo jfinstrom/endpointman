@@ -23,7 +23,7 @@ class Text_Diff_Engine_shell {
      *
      * @var string
      */
-    var $_diffCommand = 'diff';
+    public $_diffCommand = 'diff';
 
     /**
      * Returns the array of differences.
@@ -35,8 +35,8 @@ class Text_Diff_Engine_shell {
      */
     function diff($from_lines, $to_lines)
     {
-        array_walk($from_lines, array('Text_Diff', 'trimNewlines'));
-        array_walk($to_lines, array('Text_Diff', 'trimNewlines'));
+        array_walk($from_lines, ['Text_Diff', 'trimNewlines']);
+        array_walk($to_lines, ['Text_Diff', 'trimNewlines']);
 
         $temp_dir = Text_Diff::_getTempDir();
 
@@ -55,12 +55,12 @@ class Text_Diff_Engine_shell {
 
         if (is_null($diff)) {
             // No changes were made
-            return array(new Text_Diff_Op_copy($from_lines));
+            return [new Text_Diff_Op_copy($from_lines)];
         }
 
         $from_line_no = 1;
         $to_line_no = 1;
-        $edits = array();
+        $edits = [];
 
         // Get changed lines by parsing something like:
         // 0a1,2
@@ -85,7 +85,7 @@ class Text_Diff_Engine_shell {
 
             if ($from_line_no < $match[1] || $to_line_no < $match[4]) {
                 // copied lines
-                assert('$match[1] - $from_line_no == $match[4] - $to_line_no');
+                assert($match[1] - $from_line_no == $match[4] - $to_line_no);
                 array_push($edits,
                     new Text_Diff_Op_copy(
                         $this->_getLines($from_lines, $from_line_no, $match[1] - 1),
@@ -147,14 +147,14 @@ class Text_Diff_Engine_shell {
     function _getLines(&$text_lines, &$line_no, $end = false)
     {
         if (!empty($end)) {
-            $lines = array();
+            $lines = [];
             // We can shift even more
             while ($line_no <= $end) {
                 array_push($lines, array_shift($text_lines));
                 $line_no++;
             }
         } else {
-            $lines = array(array_shift($text_lines));
+            $lines = [array_shift($text_lines)];
             $line_no++;
         }
 

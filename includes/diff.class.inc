@@ -13,9 +13,9 @@
 */
 class diff {
 
-	var $changes = array();
-	var $diff = array();
-	var $linepadding = null;
+	public $changes = [];
+	public $diff = [];
+	public $linepadding = null;
 	
 	function doDiff($old, $new){
 		if (!is_array($old)) $old = file($old);
@@ -32,7 +32,7 @@ class diff {
 				}
 			}       
 		}
-		if($maxlen == 0) return array(array('d'=>$old, 'i'=>$new));
+		if($maxlen == 0) return [['d'=>$old, 'i'=>$new]];
 		
 		return array_merge(
 						$this->doDiff(array_slice($old, 0, $omax), array_slice($new, 0, $nmax)),
@@ -43,8 +43,8 @@ class diff {
 	
 	function diffWrap($old, $new){
 		$this->diff = $this->doDiff($old, $new);
-		$this->changes = array();
-		$ndiff = array();
+		$this->changes = [];
+		$ndiff = [];
 		foreach ($this->diff as $line => $k){
 			if(is_array($k)){
 				if (isset($k['d'][0]) || isset($k['i'][0])){
@@ -60,7 +60,7 @@ class diff {
 	}
 	
 	function formatcode($code){
-		$code = htmlentities($code);
+		$code = htmlentities((string) $code);
 		$code = str_replace(" ",'&nbsp;',$code);
 		$code = str_replace("\t",'&nbsp;&nbsp;&nbsp;&nbsp;',$code);
 		return $code;

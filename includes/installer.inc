@@ -22,7 +22,7 @@ if(!function_exists("out")) {
 if($_REQUEST['type'] == "brand") {
     $endpoint->download_brand($_REQUEST['id']);
 } elseif($_REQUEST['type'] == "js-multiple") {
-    $list = explode(",",$_REQUEST['id']);
+    $list = explode(",",(string) $_REQUEST['id']);
     sort($list,SORT_STRING);
 
     foreach($list as $data) {
@@ -98,7 +98,7 @@ if($_REQUEST['type'] == "brand") {
                 exec("tar -xvf ".PHONE_MODULES_PATH.'temp/'. $_REQUEST['package'] ." -C ".$temp_directory);
                 echo "Done!<br />";
 
-                $package = basename($_REQUEST['package'], ".tgz");    
+                $package = basename((string) $_REQUEST['package'], ".tgz");    
                 $package = explode("-",$package);
 
 		if ($endpoint->global_cfg['debug']) echo "Looking for file ".$temp_directory.$package[0]." to pass on to update_brand() <br />";

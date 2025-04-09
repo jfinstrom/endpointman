@@ -152,11 +152,11 @@ switch ($sub_type) {
 			foreach($_REQUEST['selected'] as $key => $data) {
 			
 				foreach($lines as $line){
-						if ($data == $line[ext]){
+						if ($data == $line[\EXT]){
 						$sql = "SELECT mac_id FROM endpointman_line_list WHERE ext = " . $data;
 						$endpoint->eda->sql($sql);
 						$macid = $endpoint->eda->sql($sql,'getrow',DB_FETCHMODE_ASSOC);
-						$_REQUEST['selected'][$key] = $macid[mac_id];
+						$_REQUEST['selected'][$key] = $macid[\MAC_ID];
 						
 						}
 				}
@@ -235,7 +235,7 @@ switch ($sub_type) {
                     $provisioner_lib->brand_name = $phone_info['directory'];
                     $provisioner_lib->family_line = $phone_info['cfg_dir'];
 
-                    $provisioner_lib->settings['line'][0] = array('username' => $phone_info['line'][1]['ext'], 'authname' => $phone_info['line'][1]['ext'], 'tech' => $phone_info['line'][1]['tech']);
+                    $provisioner_lib->settings['line'][0] = ['username' => $phone_info['line'][1]['ext'], 'authname' => $phone_info['line'][1]['ext'], 'tech' => $phone_info['line'][1]['tech']];
                     $provisioner_lib->reboot();
                     unset($provisioner_lib);
                 }
@@ -302,11 +302,11 @@ switch ($sub_type) {
 			foreach($_REQUEST['selected'] as $key => $data) {
 			
 				foreach($lines as $line){
-						if ($data == $line[ext]){
+						if ($data == $line[\EXT]){
 						$sql = "SELECT mac_id FROM endpointman_line_list WHERE ext = " . $data;
 						$endpoint->eda->sql($sql);
 						$macid = $endpoint->eda->sql($sql,'getrow',DB_FETCHMODE_ASSOC);
-						$_REQUEST['selected'][$key] = $macid[mac_id];
+						$_REQUEST['selected'][$key] = $macid[\MAC_ID];
 						
 						}
 				}
@@ -392,12 +392,12 @@ switch ($sub_type) {
 $devices_list = $endpoint->eda->all_devices();;
 
 $i = 0;
-$list = array();
+$list = [];
 
 $device_statuses = shell_exec($endpoint->global_cfg['asterisk_location']." -rx 'sip show peers'");
 
 $device_statuses = explode("\n", $device_statuses);
-$devices_status = array();
+$devices_status = [];
 foreach($device_statuses as $key => $data) {
     preg_match('/(\d*)\/[\d]*/i', $data, $extout);
     preg_match('/\b(?:\d{1,3}\.){3}\d{1,3}\b/i', $data, $ipaddress);
@@ -455,8 +455,8 @@ foreach($devices_list as $devices_row) {
     }
     $ext = $list[$i]['line'][0]['ext'];
 
-    $list[$i]['status']['status'] = isset($devices_status[$ext]['status']) ?$devices_status[$ext]['status'] : FALSE;
-    $list[$i]['status']['ip'] = isset($devices_status[$ext]['ip']) ? $devices_status[$ext]['ip'] : FALSE;
+    $list[$i]['status']['status'] = $devices_status[$ext]['status'] ?? FALSE;
+    $list[$i]['status']['ip'] = $devices_status[$ext]['ip'] ?? FALSE;
     $list[$i]['status']['port'] = '';
     $i++;
 }
@@ -482,7 +482,7 @@ $sql = "SELECT DISTINCT endpointman_product_list.* FROM endpointman_product_list
 
 $template_list = $endpoint->eda->sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
 $i = 1;
-$product_list = array();
+$product_list = [];
 $product_list[0]['value'] = 0;
 $product_list[0]['text'] = "";
 foreach($template_list as $row) {
@@ -494,7 +494,7 @@ foreach($template_list as $row) {
 $sql = "SELECT DISTINCT endpointman_model_list.* FROM endpointman_product_list, endpointman_model_list WHERE endpointman_product_list.id = endpointman_model_list.product_id AND endpointman_model_list.hidden = 0 AND endpointman_model_list.enabled = 1 AND endpointman_product_list.hidden != 1 AND endpointman_product_list.cfg_dir !=  ''";
 $template_list = $endpoint->eda->sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
 $i = 1;
-$model_list = array();
+$model_list = [];
 $model_list[0]['value'] = 0;
 $model_list[0]['text'] = "";
 foreach($template_list as $row) {
@@ -529,7 +529,7 @@ if (isset($template_editor)) {
     $endpoint->tpl->assign("mode", $mode);
 
 	
-    $edit_row['id'] = isset($edit_row['id']) ? $edit_row['id'] : '0';
+    $edit_row['id'] ??= '0';
     $endpoint->tpl->assign("edit_id", $edit_row['id']);
 	$endpoint->tpl->assign("template_id", $edit_row['template_id']);
 	

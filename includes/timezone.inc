@@ -94,7 +94,7 @@ if (!class_exists("DateTimeZone")) {
 	class DateTimeZone {
 		private $ZDump;
 		function __construct($name) {
-			if (preg_match('|^[a-z]+\/[a-z_\-]+$|i',$name)!=1) {
+			if (preg_match('|^[a-z]+\/[a-z_\-]+$|i',(string) $name)!=1) {
 				# Invalid characters - maybe ../ or something.
 				throw new exception("DateTimeZone::__construct(): Unknown or bad timezone ($name)");
 			}
@@ -109,11 +109,11 @@ if (!class_exists("DateTimeZone")) {
 		}
 		private function getZDump() {
 			if (!is_array($this->ZDump)) {
-				$this->ZDump=array();
-				$months=array(
+				$this->ZDump=[];
+				$months=[
 					'Jan'=>1,'Feb'=>2,'Mar'=>3,'Apr'=>4,
 					'May'=>5,'Jun'=>6,'Jul'=>7,'Aug'=>8,
-					'Sep'=>9,'Oct'=>10,'Nov'=>11,'Dec'=>12);
+					'Sep'=>9,'Oct'=>10,'Nov'=>11,'Dec'=>12];
 				$zdump=popen("zdump -v ".$this->name,"r");
 				$last="none";
 				while (($line = fgets($zdump))!==false) {
@@ -121,9 +121,9 @@ if (!class_exists("DateTimeZone")) {
 					$line[2]=$months[$line[2]];
 					$utc=gmmktime($line[4],$line[5],$line[6],$line[2],$line[3],$line[7]);
 					if ($last!==intval($line[20])) {
-						$this->ZDump[]=array('ts'=>$utc,
+						$this->ZDump[]=['ts'=>$utc,
 							'offset'=>intval($line[20]),
-							'dst'=>($line[18]=='1'?true:false));
+							'dst'=>($line[18]=='1'?true:false)];
 						$last=intval($line[20]);
 					}
 				}
@@ -149,7 +149,7 @@ if (!class_exists("DateTimeZone")) {
 			return $this->ZDump;
 		}
 		function listIdentifiers() {
-			$result=array();
+			$result=[];
 			foreach (explode(" ","Africa America Antarctica Arctic Asia Atlantic Australia Europe Indian Pacific") AS $dir) {
 				$rdir=opendir("/usr/share/zoneinfo/$dir");
 				while (($file=readdir($rdir))!==false) {

@@ -67,19 +67,19 @@ class RainTPLCompile{
 	 * @access private
 	 * @var string
 	 */
-	var $split_pattern = '/(\{(?:loop(?:\s+)name="(?:.*?)")\})|(\{(?:\/loop)\})|(\{(?:if(?:\s+)condition="(?:.*?)")\})|(\{(?:elseif(?:\s+)condition="(?:.*?)")\})|(\{(?:else)\})|(\{(?:\/if)\})|(\{noparse\})|(\{\/noparse\})|(\{ignore\})|(\{\/ignore\})|(\{include="(?:.*?)"\})/';
+	public $split_pattern = '/(\{(?:loop(?:\s+)name="(?:.*?)")\})|(\{(?:\/loop)\})|(\{(?:if(?:\s+)condition="(?:.*?)")\})|(\{(?:elseif(?:\s+)condition="(?:.*?)")\})|(\{(?:else)\})|(\{(?:\/if)\})|(\{noparse\})|(\{\/noparse\})|(\{ignore\})|(\{\/ignore\})|(\{include="(?:.*?)"\})/';
 	
 
 	/**
 	 * Template dir
 	 */
-	var $tpl_dir = null;
+	public $tpl_dir = null;
 
 
 	/**
 	 * Base directory of path substitution
 	 */
-	var $base_dir = null;
+	public $base_dir = null;
 
 
 	/**
@@ -107,10 +107,10 @@ class RainTPLCompile{
 
 		//if tag are disabled
 		if( !RAINTPL_PHP_ENABLED )
-			$template_code = str_replace( array("<?","?>"), array("&lt;?","?&gt;"), $template_code );
+			$template_code = str_replace( ["<?","?>"], ["&lt;?","?&gt;"], $template_code );
 
 		//xml substitution
-		$template_code = preg_replace( "/\#\#XML(.*?)XML\#\#/", "<?php echo '<?xml' . stripslashes('\\1') . '?>'; ?>", $template_code );
+		$template_code = preg_replace( "/\#\#XML(.*?)XML\#\#/", "<?php echo '<?xml' . stripslashes('\\1') . '?>'; ?>", (string) $template_code );
 
 		//compile template
 		$template_compiled = $this->compileTemplate( $template_code, $tpl_name );
@@ -119,7 +119,7 @@ class RainTPLCompile{
 		//write compiled file
 		$filename = $tpl_compile_dir . $tpl_name . "_" . filemtime( $tpl_dir . '/' . $tpl_name . '.' . TPL_EXT ) . ".php";
 		
-		$dir = explode( "/", $tpl_compile_dir );
+		$dir = explode( "/", (string) $tpl_compile_dir );
 		for( $i=0, $base=""; $i<count($dir);$i++ ){
 			$base .= $dir[$i] . "/";
 			if( !is_dir($base) )
@@ -171,7 +171,7 @@ class RainTPLCompile{
 	 		for( $space_counter = 0, $space = ""; $space_counter < $level + $open_if; $space_counter++, $space .= "	" );
 	 		
 	 		//close ignore tag
-	 		if( !$comment_is_open && preg_match( '/\{\/ignore\}/', $html ) )
+	 		if( !$comment_is_open && preg_match( '/\{\/ignore\}/', (string) $html ) )
 	 			$ignore_is_open = false;	
 	 			
 	 		//code between tag ignore id deleted
@@ -180,7 +180,7 @@ class RainTPLCompile{
 	 		}
 
 	 		//close no parse tag
-	 		elseif( preg_match( '/\{\/noparse\}/', $html ) )
+	 		elseif( preg_match( '/\{\/noparse\}/', (string) $html ) )
 	 			$comment_is_open = false;	
 	 			
 	 		//code between tag noparse is not compiled
@@ -189,15 +189,15 @@ class RainTPLCompile{
 	 		}
 
 	 		//ignore
-	 		elseif( preg_match( '/\{ignore\}/', $html ) )
+	 		elseif( preg_match( '/\{ignore\}/', (string) $html ) )
 	 			$ignore_is_open = true;
 
 	 		//noparse
-	 		elseif( preg_match( '/\{noparse\}/', $html ) )
+	 		elseif( preg_match( '/\{noparse\}/', (string) $html ) )
 	 			$comment_is_open = true;
 	 		
 			//include tag
-			elseif( preg_match( '/(?:\{include="(.*?)"\})/', $html, $code ) ){
+			elseif( preg_match( '/(?:\{include="(.*?)"\})/', (string) $html, $code ) ){
 			
 				//variables substitution
 				$include_var = $this->var_replace( $code[ 1 ], $left_delimiter = null, $right_delimiter = null, $php_left_delimiter = '".' , $php_right_delimiter = '."', $this_loop_name = $parent_loop[ $level ] );
@@ -212,7 +212,7 @@ class RainTPLCompile{
 			}
 	 			
 	 		//loop
-	 		elseif( preg_match( '/(?:\{loop(?:\s+)name="(.*?)"\})/', $html, $code ) ){
+	 		elseif( preg_match( '/(?:\{loop(?:\s+)name="(.*?)"\})/', (string) $html, $code ) ){
 	 			
 	 			//increase the loop counter
 	 			$level++;
@@ -237,7 +237,7 @@ class RainTPLCompile{
 			}
 			
 			//close loop tag
-			elseif( preg_match( '/\{\/loop\}/', $html ) ){
+			elseif( preg_match( '/\{\/loop\}/', (string) $html ) ){
 				//iterator
 				$counter = "\$counter$level";
 				
@@ -253,7 +253,7 @@ class RainTPLCompile{
 			}
 			
 			//if
-			elseif( preg_match( '/(?:\{if(?:\s+)condition="(.*?)"\})/', $html, $code ) ){
+			elseif( preg_match( '/(?:\{if(?:\s+)condition="(.*?)"\})/', (string) $html, $code ) ){
 				
 				//increase open if counter (for intendation)
 				$open_if++;
@@ -271,7 +271,7 @@ class RainTPLCompile{
 			}
 
 			//elseif
-			elseif( preg_match( '/(?:\{elseif(?:\s+)condition="(.*?)"\})/', $html, $code ) ){
+			elseif( preg_match( '/(?:\{elseif(?:\s+)condition="(.*?)"\})/', (string) $html, $code ) ){
 				
 				//increase open if counter (for intendation)
 				$open_if++;
@@ -290,7 +290,7 @@ class RainTPLCompile{
 			}
 			
 			//else
-			elseif( preg_match( '/\{else\}/', $html ) ){
+			elseif( preg_match( '/\{else\}/', (string) $html ) ){
 
 				//else code
 				$compiled_code .=   "<?php" . "\n" .
@@ -301,7 +301,7 @@ class RainTPLCompile{
 			}
 						
 			//close if tag
-			elseif( preg_match( '/\{\/if}/', $html ) ){
+			elseif( preg_match( '/\{\/if}/', (string) $html ) ){
 				
 				//decrease if counter
 				$open_if--;
@@ -341,8 +341,8 @@ class RainTPLCompile{
 	 * @return string html sostituito
 	 */
 	function path_replace( $html ){
-		$exp = array( '/src=(?:")http\:\/\/([^"]+?)(?:")/i', '/src=(?:")([^"]+?)#(?:")/i', '/src="(.*?)"/', '/src=(?:\@)([^"]+?)(?:\@)/i', '/background=(?:")http\:\/\/([^"]+?)(?:")/i', '/background=(?:")([^"]+?)#(?:")/i', '/background="(.*?)"/', '/background=(?:\@)([^"]+?)(?:\@)/i', '/<link(.*?)href=(?:")http\:\/\/([^"]+?)(?:")/i', '/<link(.*?)href=(?:")([^"]+?)#(?:")/i', '/<link(.*?)href="(.*?)"/', '/<link(.*?)href=(?:\@)([^"]+?)(?:\@)/i' );
-		$sub = array( 'src=@http://$1@', 'src=@$1@', 'src="' . $this->base_dir . '\\1"', 'src="$1"', 'background=@http://$1@', 'background=@$1@', 'background="' . $this->base_dir . '\\1"', 'background="$1"', '<link$1href=@http://$2@', '<link$1href=@$2@' , '<link$1href="' . $this->base_dir  . '$2"', '<link$1href="$2"' );
+		$exp = [ '/src=(?:")http\:\/\/([^"]+?)(?:")/i', '/src=(?:")([^"]+?)#(?:")/i', '/src="(.*?)"/', '/src=(?:\@)([^"]+?)(?:\@)/i', '/background=(?:")http\:\/\/([^"]+?)(?:")/i', '/background=(?:")([^"]+?)#(?:")/i', '/background="(.*?)"/', '/background=(?:\@)([^"]+?)(?:\@)/i', '/<link(.*?)href=(?:")http\:\/\/([^"]+?)(?:")/i', '/<link(.*?)href=(?:")([^"]+?)#(?:")/i', '/<link(.*?)href="(.*?)"/', '/<link(.*?)href=(?:\@)([^"]+?)(?:\@)/i' ];
+		$sub = [ 'src=@http://$1@', 'src=@$1@', 'src="' . $this->base_dir . '\\1"', 'src="$1"', 'background=@http://$1@', 'background=@$1@', 'background="' . $this->base_dir . '\\1"', 'background="$1"', '<link$1href=@http://$2@', '<link$1href=@$2@' , '<link$1href="' . $this->base_dir  . '$2"', '<link$1href="$2"' ];
 		//return preg_replace( $exp, $sub, $html );
                 return($html);
 	}
@@ -364,7 +364,7 @@ class RainTPLCompile{
 
 		//all variables
 		$html = preg_replace( '/\{\#(\w+)\#\}/', $php_left_delimiter . '\\1' . $php_right_delimiter, $html );
-		preg_match_all( '/' . $tag_left_delimiter . '\$(\w+(?:\.\${0,1}(?:\w+))*(?:\[\${0,1}(?:\w+)\])*(?:\-\>\${0,1}(?:\w+))*)(.*?)' . $tag_right_delimiter . '/', $html, $matches );
+		preg_match_all( '/' . $tag_left_delimiter . '\$(\w+(?:\.\${0,1}(?:\w+))*(?:\[\${0,1}(?:\w+)\])*(?:\-\>\${0,1}(?:\w+))*)(.*?)' . $tag_right_delimiter . '/', (string) $html, $matches );
 
 		for( $i = 0; $i < count( $matches[ 0 ] ); $i++ ){
 
@@ -397,7 +397,7 @@ class RainTPLCompile{
 			$variable_path = preg_replace('/\.\$(\w+)/', '["$\\1"]', $variable_path );
 			
 			//transform [variable] in ["variable"]
-			$variable_path = preg_replace('/\.(\w+)/', '["\\1"]', $variable_path );
+			$variable_path = preg_replace('/\.(\w+)/', '["\\1"]', (string) $variable_path );
 
 			//if there's a function
 			if( $function_var ){
@@ -409,7 +409,7 @@ class RainTPLCompile{
 				$function = $function_split[ 0 ];
 				
 				//function parameters
-				$params = ( isset( $function_split[ 1 ] ) ) ? $function_split[ 1 ] : null;
+				$params = $function_split[ 1 ] ?? null;
 
 			}
 			else
