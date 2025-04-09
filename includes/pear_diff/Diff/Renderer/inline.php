@@ -26,6 +26,7 @@ if (!class_exists('Text_Diff_Renderer')) {
  * @author  Ciprian Popovici
  * @package Text_Diff
  */
+#[\AllowDynamicProperties]
 class Text_Diff_Renderer_inline extends Text_Diff_Renderer {
 
     /**

@@ -283,7 +283,6 @@ function endpointman_configpageload() {
 // phone web interface link
 	class gui_link_nw_tab extends guitext {
     function __construct($elemname, $text, $url, $userlang = true) {
-        $parent_class = get_parent_class($this);
         $this->html_text = "<a href=\"$url\" target=\"_blank\" id =\"$this->elemname\">$text</a>";
     }
 }        

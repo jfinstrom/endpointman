@@ -24,6 +24,7 @@ if (!class_exists('Text_Diff')) {
  * @package Text_Diff
  * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
  */
+#[\AllowDynamicProperties]
 class Text_Diff_ThreeWay extends Text_Diff {
 
     /**
@@ -155,6 +156,7 @@ class Text_Diff_ThreeWay extends Text_Diff {
  *
  * @access private
  */
+#[\AllowDynamicProperties]
 class Text_Diff_ThreeWay_Op {
 
     function __construct($orig = false, $final1 = false, $final2 = false)
@@ -194,6 +196,7 @@ class Text_Diff_ThreeWay_Op {
  *
  * @access private
  */
+#[\AllowDynamicProperties]
 class Text_Diff_ThreeWay_Op_copy extends Text_Diff_ThreeWay_Op {
 
     function __construct($lines = false)
@@ -221,6 +224,7 @@ class Text_Diff_ThreeWay_Op_copy extends Text_Diff_ThreeWay_Op {
  *
  * @access private
  */
+#[\AllowDynamicProperties]
 class Text_Diff_ThreeWay_BlockBuilder {
 
     function __construct()

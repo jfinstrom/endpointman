@@ -15,6 +15,7 @@
  * @author  Jon Parise <jon@horde.org>
  * @package Text_Diff
  */
+#[\AllowDynamicProperties]
 class Text_Diff_Engine_xdiff {
 
     /**

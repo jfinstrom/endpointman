@@ -398,7 +398,7 @@ $device_statuses = shell_exec($endpoint->global_cfg['asterisk_location']." -rx '
 
 $device_statuses = explode("\n", $device_statuses);
 $devices_status = [];
-foreach($device_statuses as $key => $data) {
+foreach($device_statuses as $data) {
     preg_match('/(\d*)\/[\d]*/i', $data, $extout);
     preg_match('/\b(?:\d{1,3}\.){3}\d{1,3}\b/i', $data, $ipaddress);
     if(!empty($extout[1])) {
@@ -414,7 +414,7 @@ foreach($device_statuses as $key => $data) {
 // Do the same for the pjsip peers
 $device_statuses = shell_exec($endpoint->global_cfg['asterisk_location']." -rx 'pjsip show contacts'");
 $device_statuses = explode("\n", $device_statuses);
-foreach($device_statuses as $key => $data) {
+foreach($device_statuses as $data) {
     preg_match('/Contact:\s+(\d+)\/sip:.*/i', $data, $extout);
     preg_match('/\b(?:\d{1,3}\.){3}\d{1,3}\b/i', $data, $ipaddress);
     if(!empty($extout[1])) {
@@ -504,9 +504,7 @@ foreach($template_list as $row) {
 }
 
 //initialize a Rain TPL object
-if (isset($template_editor)) {
-
-} else {
+if (!isset($template_editor)) {
     $endpoint->tpl->assign("list", $list);
     $endpoint->tpl->assign("error", "");
     $serv_address = !empty($endpoint->global_cfg['nmap_search']) ? $endpoint->global_cfg['nmap_search'] : $_SERVER["SERVER_ADDR"].'/24';
@@ -527,13 +525,10 @@ if (isset($template_editor)) {
     $endpoint->tpl->assign("amp_conf_serial", base64_encode(serialize($amp_send)));
     $endpoint->tpl->assign("no_add", $no_add);
     $endpoint->tpl->assign("mode", $mode);
-
-	
     $edit_row['id'] ??= '0';
     $endpoint->tpl->assign("edit_id", $edit_row['id']);
-	$endpoint->tpl->assign("template_id", $edit_row['template_id']);
-	
-	if ($edit_row['template_id'] == "0"){
+    $endpoint->tpl->assign("template_id", $edit_row['template_id']);
+    if ($edit_row['template_id'] == "0"){
 	$endpoint->tpl->assign("custom", 1);
 	
 	$endpoint->tpl->assign("template_id", $edit_row['id']);
@@ -541,11 +536,9 @@ if (isset($template_editor)) {
 	else{
 	$endpoint->tpl->assign("custom", 0);
 	}
-
     if(isset($final)) {
         $_SESSION['dev_cache'] = base64_encode(serialize($final));
     }
-
     if (isset($mode) && ($mode == "EDIT")) {
         $ma = $endpoint->models_available($edit_row['model_id'],$edit_row['brand_id']);
         if($ma != FALSE) {
@@ -572,10 +565,8 @@ if (isset($template_editor)) {
             $endpoint->tpl->assign("mode", NULL);
         }
     }
-
     //Prepare Message Box
     $endpoint->prepare_message_box();
-
     //draw the template
     echo $endpoint->tpl->draw( 'devices_manager' );
 }

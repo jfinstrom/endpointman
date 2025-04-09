@@ -63,6 +63,7 @@ define( "IN_RAINTPL", true );
  * 
  */
 
+#[\AllowDynamicProperties]
 class RainTPL{
 	
 	/**
@@ -80,7 +81,7 @@ class RainTPL{
 	 */
 	static $tpl_dir 		= "tpl",
 		   $tpl_compile_dir = "tmp/",
-		   $base_dir 		= null;
+		   $base_dir;
 	
 	
 	

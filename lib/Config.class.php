@@ -9,6 +9,7 @@
 
 namespace FreePBX\modules\Endpointman;
 
+#[\AllowDynamicProperties]
 class Config {
 	private $module_conf;
 	

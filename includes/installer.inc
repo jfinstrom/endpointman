@@ -24,10 +24,6 @@ if($_REQUEST['type'] == "brand") {
 } elseif($_REQUEST['type'] == "js-multiple") {
     $list = explode(",",(string) $_REQUEST['id']);
     sort($list,SORT_STRING);
-
-    foreach($list as $data) {
-
-    }
 } elseif($_REQUEST['type'] == "firmware") {
     $endpoint->install_firmware($_REQUEST['id']);
 } elseif($_REQUEST['type'] == "manual_install") {

@@ -14,6 +14,7 @@
  *
  * @package Text_Diff
  */
+#[\AllowDynamicProperties]
 class Text_Diff_Renderer {
 
     /**

@@ -16,6 +16,7 @@
  * @package Text_Diff
  * @since   0.3.0
  */
+#[\AllowDynamicProperties]
 class Text_Diff_Engine_shell {
 
     /**

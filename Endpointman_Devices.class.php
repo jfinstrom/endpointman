@@ -9,6 +9,7 @@
 
 namespace FreePBX\modules;
 
+#[\AllowDynamicProperties]
 class Endpointman_Devices
 {
 	public function __construct($freepbx = null, $cfgmod = null) 

@@ -175,8 +175,7 @@ class endpointmanager {
         $contents = str_replace("&lt;", "&amp;lt;", $contents);
         $contents = str_replace("&gt;", "&amp;gt;", $contents);
         $contents = str_replace("&quot;", "&amp;quot;", $contents);
-        $contents = str_replace("&#039;", "&amp;#039;", $contents);
-        return($contents);
+        return(str_replace("&#039;", "&amp;#039;", $contents));
     }
 
     /**
@@ -204,7 +203,7 @@ class endpointmanager {
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL, probably not needed
-        $Rec_Data = curl_exec($ch);
+        curl_exec($ch);
 
         ob_start();
         header("Content-Type: text/html");
@@ -521,7 +520,7 @@ class endpointmanager {
     function delete_line($lineid, $allow_device_remove=FALSE) {
         $sql = 'SELECT mac_id FROM endpointman_line_list WHERE luid = ' . $lineid;
         $mac_id = $this->eda->sql($sql, 'getOne');
-        $row = $this->get_phone_info($mac_id);
+        $this->get_phone_info($mac_id);
 
         $sql = 'SELECT COUNT(*) FROM endpointman_line_list WHERE mac_id = ' . $mac_id;
         $num_lines = $this->eda->sql($sql, 'getOne');
@@ -574,16 +573,14 @@ class endpointmanager {
     function retrieve_device_by_mac($mac) {
         $sql = 'SELECT id FROM endpointman_mac_list WHERE mac = \''.
           str_replace(':', '', $mac). '\'';
-        $mac_id = $this->eda->sql($sql, 'getOne');
 
-        return($mac_id);
+        return($this->eda->sql($sql, 'getOne'));
     }
 
     function retrieve_device_by_ext($ext) {
         $sql = 'SELECT DISTINCT mac_id FROM endpointman_line_list WHERE ext = \''. $ext. '\'';
-        $mac_id = $this->eda->sql($sql, 'getOne');
 
-        return($mac_id);
+        return($this->eda->sql($sql, 'getOne'));
     }
 
     function get_message($function_name) {
@@ -869,8 +866,8 @@ class endpointmanager {
 			$sipextensions=$this->getSipextensions();
 			$SipSettings1=$this->getSipSettings1();
 			$SipSettings2=$this->getSipSettings2();
-			$featurecodes=$this->getFeatureCodes();
-			$getSysadminSettings=$this->getSysadminSettings();
+			$this->getFeatureCodes();
+			$this->getSysadminSettings();
 	
 	
 	
@@ -1217,7 +1214,7 @@ class endpointmanager {
                 //Group all ARI stuff into one tab
                 $template_variables_array[$group_count]['title'] = "Your Phone Settings";
             }
-            foreach ($cats as $subcat_name => $subcats) {
+            foreach ($cats as $subcats) {
                 foreach ($subcats as $item_var => $config_options) {
                     if (preg_match('/(.*)\|(.*)/i', (string) $item_var, $matches)) {
                         $type = $matches[1];
@@ -1314,7 +1311,6 @@ class endpointmanager {
                             }
                             break;
                     }
-                    continue;
                 }
             }
         }
@@ -1485,7 +1481,6 @@ class endpointmanager {
         $row = $this->eda->sql($sql, 'getRow', DB_FETCHMODE_ASSOC);
 
         $cfg_data = unserialize($row['template_data']);
-        $count = count($cfg_data);
 
         $custom_cfg_data_ari = [];
 
@@ -1657,7 +1652,7 @@ class endpointmanager {
                     } else {
                         if (file_exists(PHONE_MODULES_PATH . "endpoint/" . $phone_info['directory'] . "/" . $phone_info['cfg_dir'] . "/" . $data)) {
                             if (!file_exists(dirname($write_path . $data))) {
-                                !@mkdir(dirname($write_path . $data), 0775);
+                                @mkdir(dirname($write_path . $data), 0775);
                             }
                             copy(PHONE_MODULES_PATH . "endpoint/" . $phone_info['directory'] . "/" . $phone_info['cfg_dir'] . "/" . $data, $write_path . $data);
                             chmod($write_path . $data, 0775);
@@ -2204,6 +2199,7 @@ class endpointmanager {
                         } else {
                             switch ($key) {
                                 case "connection_type":
+                                case "primary_dns":
                                     $provisioner_lib->settings['network'][$key] = $data;
                                     break;
                                 case "ip4_address":
@@ -2217,9 +2213,6 @@ class endpointmanager {
                                     break;
                                 case "gateway_address":
                                     $provisioner_lib->settings['network']['gateway'] = $data;
-                                    break;
-                                case "primary_dns":
-                                    $provisioner_lib->settings['network'][$key] = $data;
                                     break;
                                 default:
                                     $provisioner_lib->settings[$key] = $data;
@@ -2346,7 +2339,6 @@ class endpointmanager {
         $files = $this->eda->sql($sql, 'getOne');
 
         $file_list = explode(",", (string) $files);
-        $i = 0;
         foreach ($file_list as $file) {
             if (file_exists($this->global_cfg['config_location'] . $file)) {
                 unlink($this->global_cfg['config_location'] . $file);
@@ -2866,7 +2858,6 @@ class endpointmanager {
 
                         $model_final_id = $brand_id . $family_line_xml['data']['id'] . $model_list['id'];
                         $sql = 'SELECT id, global_custom_cfg_data, global_user_cfg_data FROM endpointman_mac_list WHERE model = ' . $model_final_id;
-                        $old_data = NULL;
                         $old_data = $this->eda->sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
                         foreach ($old_data as $data) {
                             $global_custom_cfg_data = unserialize($data['global_custom_cfg_data']);
@@ -3092,7 +3083,6 @@ class endpointmanager {
                                                 $z = str_replace("\$", "", $item_loop['variable']);
                                                 $items_loop[$var_nam][$z] = $item_loop;
                                                 $items_loop[$var_nam][$z]['description'] = str_replace('{$count}', $i, $items_loop[$var_nam][$z]['description']);
-                                                $items_loop[$var_nam][$z]['default_value'] = $items_loop[$var_nam][$z]['default_value'];
                                                 $items_loop[$var_nam][$z]['default_value'] = str_replace('{$count}', $i, $items_loop[$var_nam][$z]['default_value']);
                                                 $items_loop[$var_nam][$z]['line_loop'] = TRUE;
                                                 $items_loop[$var_nam][$z]['line_count'] = $i;
@@ -3216,8 +3206,6 @@ class endpointmanager {
             $sql = "UPDATE endpointman_product_list SET long_name = '" . $long_name . "', short_name = '" . $short_name . "' , cfg_ver = '" . $version . "' WHERE id = '" . $product_row['id'] . "'";
             $this->eda->sql($sql);
 
-            $template_data_array = [];
-
             $template_data_array = $this->merge_data(PHONE_MODULES_PATH . '/endpoint/' . $brand_row['directory'] . '/' . $product_row['cfg_dir'] . '/', $template_list_array);
 
             $sql = "UPDATE endpointman_model_list SET template_data = '" . serialize($template_data_array) . "' WHERE id = '" . $model . "'";
@@ -3247,8 +3235,7 @@ class endpointmanager {
         foreach ($Haystack as $Key => $Val) {
             if (is_array($Val) &&
                     $SubPath = $this->arraysearchrecursive($Needle, $Val, $NeedleKey, $Strict, $Path)) {
-                $Path = array_merge($Path, [$Key], $SubPath);
-                return $Path;
+                return array_merge($Path, [$Key], $SubPath);
             } elseif ((!$Strict && $Val == $Needle &&
                     $Key == (strlen((string) $NeedleKey) > 0 ? $NeedleKey : $Key)) ||
                     ($Strict && $Val === $Needle &&
@@ -3430,7 +3417,6 @@ class endpointmanager {
                 switch (json_last_error()) {
                     case JSON_ERROR_NONE:
                         return($data);
-                        break;
                     case JSON_ERROR_DEPTH:
                         $this->error['file2json'] = 'Maximum stack depth exceeded';
                         break;
@@ -3556,7 +3542,7 @@ class endpointmanager {
 
         //Go through each row of valid arp entries and pull out the information and add it into a nice array!
         $z = 0;
-        foreach ($temp as $key => &$value) {
+        foreach ($temp as &$value) {
 
             //Pull out the IP address from row. It's always the first entry in the row and it can only be a max of 15 characters with the delimiters
             preg_match_all("/\((.*?)\)/", (string) $value, $matches);
@@ -3812,7 +3798,7 @@ class endpointmanager {
         require('timezone.inc');
         $data = DateTimeZone::listIdentifiers();
         $i = 0;
-        foreach ($data as $key => $row) {
+        foreach ($data as $row) {
             $temp[$i]['value'] = $row;
             $temp[$i]['text'] = $row;
             if ($temp[$i]['value'] == $selected) {
@@ -3842,7 +3828,6 @@ class endpointmanager {
         preg_match('#^(git version)#', current($output), $matches);
 
         return!empty($matches[0]) ? $git : false;
-        echo!empty($matches[0]) ? 'installed' : 'nope';
     }
 
 }

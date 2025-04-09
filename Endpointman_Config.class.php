@@ -9,6 +9,7 @@
 
 namespace FreePBX\modules;
 
+#[\AllowDynamicProperties]
 class Endpointman_Config
 {
 	public $UPDATE_PATH;
@@ -111,25 +112,21 @@ class Endpointman_Config
 				$this->epm_config_manager_check_for_updates();
 				echo "<br /><hr><br />";
 				exit;
-				break;
 
 			case "manual_install":
 				$this->epm_config_manual_install();
 				echo "<br /><hr><br />";
 				exit;
-				break;
 
 			case "firmware":
 				$this->epm_config_manager_firmware();
 				echo "<br /><hr><br />";
 				exit;
-				break;
 
 			case "brand":
 				$this->epm_config_manager_brand();
 				echo "<br /><hr><br />";
 				exit;
-				break;
 		}
 	}
 
@@ -153,8 +150,7 @@ class Endpointman_Config
 		if(! is_numeric($id_product)) { throw new \Exception( _("ID Producto not is number")." (".$id_product.")"); }
 		if($show_all == true) 	{ $sql = 'SELECT * FROM endpointman_model_list WHERE product_id = '.$id_product.' ORDER BY '.$byorder.' ASC'; }
 		else 					{ $sql = 'SELECT * FROM endpointman_model_list WHERE hidden = 0 AND product_id = '.$id_product.' ORDER BY '.$byorder.' ASC'; }
-		$result = sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
-		return $result;
+		return sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
 	}
 
 	/**
@@ -168,8 +164,7 @@ class Endpointman_Config
 		if(! is_numeric($id_brand)) { throw new \Exception(_("ID Brand not is numbre")." (".$id_brand.")"); }
 		if ($show_all == true) 	{ $sql = 'SELECT * FROM endpointman_product_list WHERE brand = '.$id_brand.' ORDER BY '.$byorder.' ASC'; }
 		else 					{ $sql = 'SELECT * FROM endpointman_product_list WHERE hidden = 0 AND brand = '.$id_brand.' ORDER BY '.$byorder.' ASC'; }
-		$result = sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
-		return $result;
+		return sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
 	}
 
 	/**
@@ -180,8 +175,7 @@ class Endpointman_Config
 	public function epm_config_hardware_get_list_brand($show_all = true, $byorder = "id") {
 		if ($show_all == true) 	{ $sql = "SELECT * from endpointman_brand_list WHERE id > 0 ORDER BY " . $byorder . " ASC "; }
 		else 					{ $sql = "SELECT * from endpointman_brand_list WHERE id > 0 AND hidden = 0 ORDER BY " . $byorder . " ASC "; }
-		$result = sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
-		return $result;
+		return sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
 	}
 
 
@@ -559,8 +553,6 @@ class Endpointman_Config
 	function brand_update_check_all()
 	{
 		$temp = $this->file2json($this->PHONE_MODULES_PATH . 'endpoint/master.json');
-		$endpoint_package = $temp['data']['package'];
-		$endpoint_last_mod = $temp['data']['last_modified'];
 
 		$version = [];
 		$out = $temp['data']['brands'];
@@ -932,8 +924,6 @@ class Endpointman_Config
 
             $sql = "UPDATE endpointman_product_list SET long_name = '" . str_replace("'", "''", $long_name) . "', short_name = '" . str_replace("'", "''", $short_name) . "' , cfg_ver = '" . $version . "' WHERE id = '" . $product_row['id'] . "'";
             sql($sql);
-
-            $template_data_array = [];
             $template_data_array = $this->merge_data($this->PHONE_MODULES_PATH . '/endpoint/' . $brand_row['directory'] . '/' . $product_row['cfg_dir'] . '/', $template_list_array);
 
             $sql = "UPDATE endpointman_model_list SET template_data = '" . serialize($template_data_array) . "' WHERE id = '" . $model . "'";
@@ -1117,7 +1107,6 @@ class Endpointman_Config
 
 	                        $model_final_id = $brand_id . $family_line_xml['data']['id'] . $model_list['id'];
 	                        $sql = 'SELECT id, global_custom_cfg_data, global_user_cfg_data FROM endpointman_mac_list WHERE model = ' . $model_final_id;
-	                        $old_data = NULL;
 	                        $old_data = sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
 	                        foreach ($old_data as $data) {
 	                            $global_custom_cfg_data = unserialize($data['global_custom_cfg_data']);
@@ -1446,7 +1435,6 @@ if ($this->configmod->get('debug')) echo format_txt(_("---Inserting Model %_NAME
         $files = sql($sql, 'getOne');
 
         $file_list = explode(",", $files);
-        $i = 0;
         foreach ($file_list as $file) {
 			if (trim($file) == "") { continue; }
             if (! file_exists($this->configmod->get('config_location') . $file)) { continue; }
@@ -1549,7 +1537,6 @@ if ($this->configmod->get('debug')) echo format_txt(_("---Inserting Model %_NAME
                 switch (json_last_error()) {
                     case JSON_ERROR_NONE:
                         return($data);
-                        break;
                     case JSON_ERROR_DEPTH:
                         $this->error['file2json'] = _('Maximum stack depth exceeded');
                         break;
@@ -1608,7 +1595,6 @@ if ($this->configmod->get('debug')) echo format_txt(_("---Inserting Model %_NAME
     											$z = str_replace("\$", "", $item_loop['variable']);
     											$items_loop[$var_nam][$z] = $item_loop;
     											$items_loop[$var_nam][$z]['description'] = str_replace('{$count}', $i, $items_loop[$var_nam][$z]['description']);
-    											$items_loop[$var_nam][$z]['default_value'] = $items_loop[$var_nam][$z]['default_value'];
     											$items_loop[$var_nam][$z]['default_value'] = str_replace('{$count}', $i, $items_loop[$var_nam][$z]['default_value']);
     											$items_loop[$var_nam][$z]['line_loop'] = TRUE;
     											$items_loop[$var_nam][$z]['line_count'] = $i;

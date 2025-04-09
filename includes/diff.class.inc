@@ -15,7 +15,7 @@ class diff {
 
 	public $changes = [];
 	public $diff = [];
-	public $linepadding = null;
+	public $linepadding;
 	
 	function doDiff($old, $new){
 		if (!is_array($old)) $old = file($old);
@@ -62,8 +62,7 @@ class diff {
 	function formatcode($code){
 		$code = htmlentities((string) $code);
 		$code = str_replace(" ",'&nbsp;',$code);
-		$code = str_replace("\t",'&nbsp;&nbsp;&nbsp;&nbsp;',$code);
-		return $code;
+		return str_replace("\t",'&nbsp;&nbsp;&nbsp;&nbsp;',$code);
 	}
 	
 	function showline($line){
@@ -161,8 +160,7 @@ class diff {
 
 			}
 		}
-		$ret.= '</table></pre>';
-		return $ret;
+		return $ret . '</table></pre>';
 	}
 }
 ?>

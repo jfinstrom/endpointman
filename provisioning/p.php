@@ -98,28 +98,6 @@ if(getMethod() == "GET") {
         }
         
     	exit;
-        $mac_address = $matches[0];
-        
-        $sql = "SELECT id FROM `endpointman_mac_list` WHERE `mac` LIKE '%" . $mac_address . "%'";
-        $mac_id = sql($sql, 'getOne');
-        $phone_info = FreePBX::Endpointman()->get_phone_info($mac_id);
-		$files = FreePBX::Endpointman()->prepare_configs($phone_info, FALSE, FALSE);
-        
-        if(!$files) {
-            header("HTTP/1.0 500 Internal Server Error", true, 500);
-            echo "<h1>"._("Error 500 Internal Server Error")."</h1>";
-            echo _("System Failure!");
-            die();
-        }
-        
-        if (array_key_exists($filename, $files)) {
-            echo $files[$filename];
-        } else {
-            header("HTTP/1.0 404 Not Found", true, 404);
-            echo "<h1>"._("Error 404 Not Found")."</h1>";
-            echo _("File not Found!");
-            die();
-        }
 
     } 
 } 

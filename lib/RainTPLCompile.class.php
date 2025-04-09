@@ -59,6 +59,7 @@ define( "RAINTPL_VERSION", '1.9.1' );
  *
  */
 
+#[\AllowDynamicProperties]
 class RainTPLCompile{
 	
 	
@@ -73,13 +74,13 @@ class RainTPLCompile{
 	/**
 	 * Template dir
 	 */
-	public $tpl_dir = null;
+	public $tpl_dir;
 
 
 	/**
 	 * Base directory of path substitution
 	 */
-	public $base_dir = null;
+	public $base_dir;
 
 
 	/**
@@ -166,9 +167,6 @@ class RainTPLCompile{
 
 	 	//read all parsed code
 	 	while( $html = array_shift( $parsed_code ) ){
-	 		
-	 		//indentation
-	 		for( $space_counter = 0, $space = ""; $space_counter < $level + $open_if; $space_counter++, $space .= "	" );
 	 		
 	 		//close ignore tag
 	 		if( !$comment_is_open && preg_match( '/\{\/ignore\}/', (string) $html ) )
@@ -341,8 +339,6 @@ class RainTPLCompile{
 	 * @return string html sostituito
 	 */
 	function path_replace( $html ){
-		$exp = [ '/src=(?:")http\:\/\/([^"]+?)(?:")/i', '/src=(?:")([^"]+?)#(?:")/i', '/src="(.*?)"/', '/src=(?:\@)([^"]+?)(?:\@)/i', '/background=(?:")http\:\/\/([^"]+?)(?:")/i', '/background=(?:")([^"]+?)#(?:")/i', '/background="(.*?)"/', '/background=(?:\@)([^"]+?)(?:\@)/i', '/<link(.*?)href=(?:")http\:\/\/([^"]+?)(?:")/i', '/<link(.*?)href=(?:")([^"]+?)#(?:")/i', '/<link(.*?)href="(.*?)"/', '/<link(.*?)href=(?:\@)([^"]+?)(?:\@)/i' ];
-		$sub = [ 'src=@http://$1@', 'src=@$1@', 'src="' . $this->base_dir . '\\1"', 'src="$1"', 'background=@http://$1@', 'background=@$1@', 'background="' . $this->base_dir . '\\1"', 'background="$1"', '<link$1href=@http://$2@', '<link$1href=@$2@' , '<link$1href="' . $this->base_dir  . '$2"', '<link$1href="$2"' ];
 		//return preg_replace( $exp, $sub, $html );
                 return($html);
 	}

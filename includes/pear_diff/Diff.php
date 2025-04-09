@@ -17,6 +17,7 @@
  * @package Text_Diff
  * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
  */
+#[\AllowDynamicProperties]
 class Text_Diff {
 
     /**
@@ -290,6 +291,7 @@ class Text_Diff {
  * @package Text_Diff
  * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
  */
+#[\AllowDynamicProperties]
 class Text_MappedDiff extends Text_Diff {
 
     /**
@@ -340,6 +342,7 @@ class Text_MappedDiff extends Text_Diff {
  *
  * @access private
  */
+#[\AllowDynamicProperties]
 class Text_Diff_Op {
 
     public $orig;
@@ -368,6 +371,7 @@ class Text_Diff_Op {
  *
  * @access private
  */
+#[\AllowDynamicProperties]
 class Text_Diff_Op_copy extends Text_Diff_Op {
 
     function __construct($orig, $final = false)
@@ -393,6 +397,7 @@ class Text_Diff_Op_copy extends Text_Diff_Op {
  *
  * @access private
  */
+#[\AllowDynamicProperties]
 class Text_Diff_Op_delete extends Text_Diff_Op {
 
     function __construct($lines)
@@ -415,6 +420,7 @@ class Text_Diff_Op_delete extends Text_Diff_Op {
  *
  * @access private
  */
+#[\AllowDynamicProperties]
 class Text_Diff_Op_add extends Text_Diff_Op {
 
     function __construct($lines)
@@ -437,6 +443,7 @@ class Text_Diff_Op_add extends Text_Diff_Op {
  *
  * @access private
  */
+#[\AllowDynamicProperties]
 class Text_Diff_Op_change extends Text_Diff_Op {
 
     function __construct($orig, $final)

@@ -73,9 +73,7 @@ if($_REQUEST['pop_type'] == 'edit_specifics') {
 if($_REQUEST['pop_type'] == 'edit_template') {
     if(empty($_REQUEST['edit_id'])) {
         $message = _("No Device Selected to Edit!")."!";
-        if(isset($message)) {
-            $endpoint->display_message_box($message,$endpoint->tpl,0);
-        }
+        $endpoint->display_message_box($message,$endpoint->tpl,0);
         if(isset($error_message)) {
             $endpoint->display_message_box($error_message,$endpoint->tpl,1);
         }

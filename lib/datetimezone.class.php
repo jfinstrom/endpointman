@@ -86,13 +86,15 @@ DIFFERENCES:
 
 
 if (!class_exists("DateTime")) {
-	class DateTime {
+	#[\AllowDynamicProperties]
+    class DateTime {
             
         }
 }
 
 if (!class_exists("DateTimeZone")) {
-	class DateTimeZone {
+	#[\AllowDynamicProperties]
+    class DateTimeZone {
 		private $ZDump;
 		function __construct($name) {
 			if (preg_match('|^[a-z]+\/[a-z_\-]+$|i',(string) $name)!=1) {
@@ -143,7 +145,6 @@ if (!class_exists("DateTimeZone")) {
 					return $transition['offset'];
 				}
 			}
-			return;
 		}
 		function getTransitions() {
 			$this->getZDump();

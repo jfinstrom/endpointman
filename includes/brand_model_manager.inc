@@ -109,19 +109,15 @@ switch ($_REQUEST['subpage']) {
                     }
 
                     $row_out[$i]['products'][$j]['fw_type'] = $endpoint->firmware_local_check($row2['id']);
-
-
-                    if(1 == 1) {
-                        $sql = "SELECT * FROM endpointman_model_list WHERE hidden = 0 AND product_id = '".$row2['id']."'";
-                                        $model_list = $endpoint->eda->sql($sql,'getAll',DB_FETCHMODE_ASSOC);
-                        $k = 0;
-                        foreach($model_list as $row3) {
-                            $row_out[$i]['products'][$j]['models'][$k] = $row3;
-                            if($row_out[$i]['products'][$j]['models'][$k]['enabled']){
-                                $row_out[$i]['products'][$j]['models'][$k]['enabled_checked'] = 'checked';
-                            }
-                            $k++;
+                    $sql = "SELECT * FROM endpointman_model_list WHERE hidden = 0 AND product_id = '".$row2['id']."'";
+                    $model_list = $endpoint->eda->sql($sql,'getAll',DB_FETCHMODE_ASSOC);
+                    $k = 0;
+                    foreach($model_list as $row3) {
+                        $row_out[$i]['products'][$j]['models'][$k] = $row3;
+                        if($row_out[$i]['products'][$j]['models'][$k]['enabled']){
+                            $row_out[$i]['products'][$j]['models'][$k]['enabled_checked'] = 'checked';
                         }
+                        $k++;
                     }
                     $j++;
                 }

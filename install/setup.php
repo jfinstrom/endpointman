@@ -8,6 +8,7 @@
  */
 
  if (!class_exists('ProvisionerConfig')) {
+#[\AllowDynamicProperties]
 class ProvisionerConfig {
     /**
      * Setup anything required to make our provisioner class work

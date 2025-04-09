@@ -22,6 +22,7 @@
  * @package Text_Diff
  * @since   0.2.0
  */
+#[\AllowDynamicProperties]
 class Text_Diff_Engine_string {
 
     /**
@@ -151,22 +152,6 @@ class Text_Diff_Engine_string {
         $i = $max_i = $j = $max_j = 0;
         $end = count($diff) - 1;
         while ($i < $end && $j < $end) {
-            while ($i >= $max_i && $j >= $max_j) {
-                // Find the boundaries of the diff output of the two files
-                for ($i = $j;
-                     $i < $end && str_starts_with((string) $diff[$i], '***');
-                     $i++);
-                for ($max_i = $i;
-                     $max_i < $end && !str_starts_with((string) $diff[$max_i], '---');
-                     $max_i++);
-                for ($j = $max_i;
-                     $j < $end && str_starts_with((string) $diff[$j], '---');
-                     $j++);
-                for ($max_j = $j;
-                     $max_j < $end && !str_starts_with((string) $diff[$max_j], '***');
-                     $max_j++);
-            }
-
             // find what hasn't been changed
             $array = [];
             while ($i < $max_i &&
@@ -177,14 +162,14 @@ class Text_Diff_Engine_string {
                 $j++;
             }
 
-            while ($i < $max_i && ($max_j-$j) <= 1) {
+            while ($i < $max_i && (-$j) <= 1) {
                 if ($diff[$i] != '' && !str_starts_with((string) $diff[$i], ' ')) {
                     break;
                 }
                 $array[] = substr((string) $diff[$i++], 2);
             }
 
-            while ($j < $max_j && ($max_i-$i) <= 1) {
+            while ($j < $max_j && (-$i) <= 1) {
                 if ($diff[$j] != '' && !str_starts_with((string) $diff[$j], ' ')) {
                     break;
                 }

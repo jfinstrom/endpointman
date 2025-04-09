@@ -28,6 +28,7 @@
  * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
  * @package Text_Diff
  */
+#[\AllowDynamicProperties]
 class Text_Diff_Engine_native {
 
     function diff($from_lines, $to_lines)
@@ -366,11 +367,6 @@ class Text_Diff_Engine_native {
 
             $start = $i;
 
-            /* Find the end of this run of changes. */
-            while (++$i < $len && $changed[$i]) {
-                continue;
-            }
-
             do {
                 /* Record the length of this run of changes, so that we can
                  * later determine whether the run has grown. */
@@ -386,9 +382,6 @@ class Text_Diff_Engine_native {
                         $start--;
                     }
                     assert($j > 0);
-                    while ($other_changed[--$j]) {
-                        continue;
-                    }
                     assert($j >= 0 && !$other_changed[$j]);
                 }
 
@@ -427,9 +420,6 @@ class Text_Diff_Engine_native {
                 $changed[--$start] = 1;
                 $changed[--$i] = 0;
                 assert($j > 0);
-                while ($other_changed[--$j]) {
-                    continue;
-                }
                 assert($j >= 0 && !$other_changed[$j]);
             }
         }

@@ -7,23 +7,8 @@
  * @license MPL / GPLv2 / LGPL
  * @package Provisioner
  */
-class endpointmanager {
-
-    //Load this class upon construction of the class
-
-  
-
-    /**
-     *
-     * @global array $amp_conf Data taken about FreePBX from FreePBX as a global, we move this into a public variable
-     * @global object $db Pear DB information, we move this into a public variable
-     */
-
-    function __construct() {
-        
-    }
-
-
+class endpointmanager
+{
 }
 
 function endpointman_flush_buffers() {

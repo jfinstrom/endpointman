@@ -9,6 +9,7 @@
 
 namespace FreePBX\modules;
 
+#[\AllowDynamicProperties]
 class Endpointman_Templates
 {
 	public function __construct($epm_config, $eda, $freepbx = null, $cfgmod = null) 
@@ -85,7 +86,6 @@ class Endpointman_Templates
 					$return[] = array('value' => 'va13', 'txt' => 'txt3', 'select' => "OFF");
 				*/
 					return $this->edit_template_display_files($_REQUEST['idsel'],$_REQUEST['custom'], $_REQUEST['namefile']);
-					break;
 					
 				default:
 					$retarr = ["status" => false, "message" => _("Command not found!") . " [" .$command. "]"];
@@ -217,12 +217,10 @@ class Endpointman_Templates
 				
 				if((isset($_REQUEST['config_loc'])) AND ($_REQUEST['config_loc'] != "")) {
 					if((file_exists($_REQUEST['config_loc'])) AND (is_dir($_REQUEST['config_loc']))) {
-						if(is_writable($_REQUEST['config_loc'])) {
-							$_REQUEST['config_loc'] = $_REQUEST['config_loc'];
-						} else {
-							$settings_warning = _("Directory Not Writable!");
-							$_REQUEST['config_loc'] = $this->configmod->get('config_location');
-						}
+						if (!is_writable($_REQUEST['config_loc'])) {
+                            $settings_warning = _("Directory Not Writable!");
+                            $_REQUEST['config_loc'] = $this->configmod->get('config_location');
+                        }
 					} else {
 						$settings_warning = _("Not a Vaild Directory");
 						$_REQUEST['config_loc'] = $this->configmod->get('config_location');
@@ -403,9 +401,6 @@ class Endpointman_Templates
 		foreach($template_list as $row) {
 			$row_out[$i] = $row;
 			$row_out[$i]['custom'] = 0;
-			if(!$row['enabled']) {
-				$row_out[$i]['model_clone'] = $row_out[$i]['model_clone'];
-			}
 			$i++;
 		}
 		
@@ -546,8 +541,6 @@ class Endpointman_Templates
 		$row = sql($sql, 'getRow', DB_FETCHMODE_ASSOC);
 		$config_files_list = explode(",", (string) $row['config_files']);
 		asort($config_files_list);
-		
-		$i = 0;
 		$b = 0;
 		$dReturn = [];
 		foreach ($config_files_list as $files) 
@@ -815,7 +808,7 @@ class Endpointman_Templates
     			//Group all ARI stuff into one tab
     			$template_variables_array[$group_count]['title'] = "Your Phone Settings";
     		}
-    		foreach ($cats as $subcat_name => $subcats) {
+    		foreach ($cats as $subcats) {
     			foreach ($subcats as $item_var => $config_options) {
     				if (preg_match('/(.*)\|(.*)/i', (string) $item_var, $matches)) {
     					$type = $matches[1];
@@ -912,7 +905,6 @@ class Endpointman_Templates
     						}
     						break;
     				}
-    				continue;
     			}
     		}
     	}

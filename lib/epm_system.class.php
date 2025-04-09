@@ -1,6 +1,7 @@
 <?php
 namespace FreePBX\modules;
 
+#[\AllowDynamicProperties]
 class epm_system {
     /**
      * Fixes the display are special strings so we can visible see them instead of them being transformed
@@ -12,8 +13,7 @@ class epm_system {
         $contents = str_replace("&lt;", "&amp;lt;", $contents);
         $contents = str_replace("&gt;", "&amp;gt;", $contents);
         $contents = str_replace("&quot;", "&amp;quot;", $contents);
-        $contents = str_replace("&#039;", "&amp;#039;", $contents);
-        return($contents);
+        return(str_replace("&#039;", "&amp;#039;", $contents));
     }
     /**
      * Does a TFTP Check by connecting to $host looking for $filename
@@ -223,8 +223,7 @@ class epm_system {
         foreach ($Haystack as $Key => $Val) {
             if (is_array($Val) &&
                     $SubPath = $this->arraysearchrecursive($Needle, $Val, $NeedleKey, $Strict, $Path)) {
-                $Path = array_merge($Path, [$Key], $SubPath);
-                return $Path;
+                return array_merge($Path, [$Key], $SubPath);
             } elseif ((!$Strict && $Val == $Needle &&
                     $Key == (strlen((string) $NeedleKey) > 0 ? $NeedleKey : $Key)) ||
                     ($Strict && $Val === $Needle &&

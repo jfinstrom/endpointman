@@ -44,6 +44,7 @@ function generate_xml_from_array ($array, $node_name, &$tab = -1)
 }
 
 
+#[\AllowDynamicProperties]
 class Endpointman implements \BMO {
 
 	//public $epm_config;
@@ -200,18 +201,6 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
 		$setting['authenticate'] = true;
 		$setting['allowremote'] = true;
 		return true;
-
-		$module_sec = isset($_REQUEST['module_sec'])? trim((string) $_REQUEST['module_sec']) : '';
-		if ($module_sec == "") { return false; }
-        return match ($module_sec) {
-            "epm_devices" => $this->epm_devices->ajaxRequest(trim((string) $req), $setting),
-            "epm_oss" => $this->epm_oss->ajaxRequest(trim((string) $req), $setting),
-            "epm_placeholders" => $this->epm_placeholders->ajaxRequest(trim((string) $req), $setting),
-            "epm_config" => $this->epm_config->ajaxRequest(trim((string) $req), $setting),
-            "epm_advanced" => $this->epm_advanced->ajaxRequest(trim((string) $req), $setting),
-            "epm_templates" => $this->epm_templates->ajaxRequest(trim((string) $req), $setting),
-            default => false,
-        };
     }
 
     public function ajaxHandler() {
@@ -300,14 +289,11 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
 				break;
 			case "epm_oss":
 				return $this->epm_oss->myShowPage($this->pagedata);
-				break;
 			case "epm_placeholders":
 				return $this->epm_placeholders->myShowPage($this->pagedata);
-				break;
 			case "epm_templates":
 				$this->epm_templates->myShowPage($this->pagedata);
 				return $this->pagedata;
-				break;
 
 			case "epm_config":
 				$this->epm_config->myShowPage($this->pagedata);
@@ -341,15 +327,6 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
 			//return load_view(dirname(__FILE__).'/views/rnav.php',array());
 			return load_view(__DIR__ . '/views/rnav.php', $var);
 		}
-		return match ($_REQUEST['display']) {
-            "epm_devices" => load_view(__DIR__ . '/views/rnav.php', $var),
-            "epm_oss" => load_view(__DIR__ . '/views/rnav.php', $var),
-            "epm_placeholders" => load_view(__DIR__ . '/views/rnav.php', $var),
-            "epm_config" => load_view(__DIR__ . '/views/rnav.php', $var),
-            "epm_advanced" => load_view(__DIR__ . '/views/rnav.php', $var),
-            "epm_templates" => load_view(__DIR__ . '/views/rnav.php', $var),
-            default => '',
-        };
 	}
 
 	//http://wiki.freepbx.org/pages/viewpage.action?pageId=29753755
@@ -395,47 +372,6 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
 	}
 
     public function restore($backup) {
-	}
-
-
-	private function epm_config_manual_install($install_type = "", $package ="")
-	{
-		if ($install_type == "") {
-			throw new \Exception("Not send install_type!");
-		}
-
-		switch($install_type) {
-			case "export_brand":
-
-				break;
-
-			case "upload_master_xml":
-				if (file_exists($this->PHONE_MODULES_PATH."temp/master.xml")) {
-					$handle = fopen($this->PHONE_MODULES_PATH."temp/master.xml", "rb");
-					$contents = stream_get_contents($handle);
-					fclose($handle);
-					@$a = simplexml_load_string($contents);
-					if($a===FALSE) {
-						echo "Not a valid xml file";
-						break;
-					} else {
-						rename($this->PHONE_MODULES_PATH."temp/master.xml", $this->PHONE_MODULES_PATH."master.xml");
-						echo "Move Successful<br />";
-						$this->update_check();
-						echo "Updating Brands<br />";
-					}
-				} else {
-				}
-				break;
-
-			case "upload_provisioner":
-
-				break;
-
-			case "upload_brand":
-
-				break;
-		}
 	}
 
 
@@ -543,7 +479,7 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
         require_once('lib/datetimezone.class.php');
         $data = \DateTimeZone::listIdentifiers();
         $i = 0;
-        foreach ($data as $key => $row) {
+        foreach ($data as $row) {
             $temp[$i]['value'] = $row;
             $temp[$i]['text'] = $row;
             if (strtoupper ((string) $temp[$i]['value']) == strtoupper((string) $selected)) {
@@ -569,7 +505,6 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
         preg_match('#^(git version)#', current($output), $matches);
 
         return!empty($matches[0]) ? $git : false;
-        echo!empty($matches[0]) ? 'installed' : 'nope';
     }
 
 	function tftp_check() {
@@ -641,7 +576,7 @@ echo 'TFTP Server check failed on last past. Skipping';
     	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
     	curl_setopt($ch, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS
     	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL, probably not needed
-    	$Rec_Data = curl_exec($ch);
+    	curl_exec($ch);
 
     	ob_start();
     	header("Content-Type: text/html");
@@ -1914,7 +1849,6 @@ $this->error['parse_configs'] = "File not written to hard drive!";
         $row = sql($sql, 'getRow', DB_FETCHMODE_ASSOC);
 
         $cfg_data = unserialize($row['template_data']);
-        $count = count($cfg_data);
 
         $custom_cfg_data_ari = [];
 
@@ -2015,8 +1949,6 @@ $this->error['parse_configs'] = "File not written to hard drive!";
             $location = "devices_manager";
         }
         sql($sql);
-
-        $phone_info = [];
 /*
         if ($custom != 0) {
             $phone_info = $this->get_phone_info($id);

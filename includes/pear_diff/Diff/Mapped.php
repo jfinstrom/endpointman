@@ -10,6 +10,7 @@
  * @package Text_Diff
  * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
  */
+#[\AllowDynamicProperties]
 class Text_Diff_Mapped extends Text_Diff {
 
     /**

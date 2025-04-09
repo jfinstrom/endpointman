@@ -22,6 +22,7 @@ if (!class_exists('Text_Diff_Renderer')) {
 /**
  * @package Text_Diff
  */
+#[\AllowDynamicProperties]
 class Text_Diff_Renderer_context extends Text_Diff_Renderer {
 
     /**

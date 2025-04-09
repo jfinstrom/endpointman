@@ -190,7 +190,8 @@ define('JSON_PRETTY_PRINT', 100);
  * </code>
  */
 if(!class_exists('Services_JSON')) {
-	class Services_JSON
+	#[\AllowDynamicProperties]
+    class Services_JSON
 	{
 	   /**
 	    * constructs a new JSON instance
@@ -308,7 +309,7 @@ if(!class_exists('Services_JSON')) {
 	                return 'null';
 
 	            case 'integer':
-	                return (int) $var;
+	                return $var;
 
 	            case 'double':
 	            case 'float':
@@ -317,7 +318,7 @@ if(!class_exists('Services_JSON')) {
 	            case 'string':
 	                // STRINGS ARE EXPECTED TO BE IN ASCII OR UTF-8 FORMAT
 	                $ascii = '';
-	                $strlen_var = strlen((string) $var);
+	                $strlen_var = strlen($var);
 
 	               /*
 	                * Iterate over every character in the string,
@@ -440,7 +441,7 @@ if(!class_exists('Services_JSON')) {
 
 	                // treat as a JSON object
 	                if (is_array($var) && count($var) && (array_keys($var) !== range(0, sizeof($var) - 1))) {
-	                    $properties = array_map([$this, 'name_value'],
+	                    $properties = array_map($this->name_value(...),
 	                                            array_keys($var),
 	                                            array_values($var));
 
@@ -454,7 +455,7 @@ if(!class_exists('Services_JSON')) {
 	                }
 
 	                // treat it like a regular array
-	                $elements = array_map([$this, 'encode'], $var);
+	                $elements = array_map($this->encode(...), $var);
 
 	                foreach($elements as $element) {
 	                    if(Services_JSON::isError($element)) {
@@ -467,7 +468,7 @@ if(!class_exists('Services_JSON')) {
 	            case 'object':
 	                $vars = get_object_vars($var);
 
-	                $properties = array_map([$this, 'name_value'],
+	                $properties = array_map($this->name_value(...),
 	                                        array_keys($vars),
 	                                        array_values($vars));
 
@@ -579,11 +580,11 @@ if(!class_exists('Services_JSON')) {
 	                    $delim = substr((string) $str, 0, 1);
 	                    $chrs = substr((string) $str, 1, -1);
 	                    $utf8 = '';
-	                    $strlen_chrs = strlen((string) $chrs);
+	                    $strlen_chrs = strlen($chrs);
 
 	                    for ($c = 0; $c < $strlen_chrs; ++$c) {
 
-	                        $substr_chrs_c_2 = substr((string) $chrs, $c, 2);
+	                        $substr_chrs_c_2 = substr($chrs, $c, 2);
 	                        $ord_chrs_c = ord($chrs[$c]);
 
 	                        switch (true) {
@@ -618,10 +619,10 @@ if(!class_exists('Services_JSON')) {
 	                                }
 	                                break;
 
-	                            case preg_match('/\\\u[0-9A-F]{4}/i', substr((string) $chrs, $c, 6)):
+	                            case preg_match('/\\\u[0-9A-F]{4}/i', substr($chrs, $c, 6)):
 	                                // single, escaped unicode character
-	                                $utf16 = chr(hexdec(substr((string) $chrs, ($c + 2), 2)))
-	                                       . chr(hexdec(substr((string) $chrs, ($c + 4), 2)));
+	                                $utf16 = chr(hexdec(substr($chrs, ($c + 2), 2)))
+	                                       . chr(hexdec(substr($chrs, ($c + 4), 2)));
 	                                $utf8 .= $this->utf162utf8($utf16);
 	                                $c += 5;
 	                                break;
@@ -633,35 +634,35 @@ if(!class_exists('Services_JSON')) {
 	                            case ($ord_chrs_c & 0xE0) == 0xC0:
 	                                // characters U-00000080 - U-000007FF, mask 110XXXXX
 	                                //see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
-	                                $utf8 .= substr((string) $chrs, $c, 2);
+	                                $utf8 .= substr($chrs, $c, 2);
 	                                ++$c;
 	                                break;
 
 	                            case ($ord_chrs_c & 0xF0) == 0xE0:
 	                                // characters U-00000800 - U-0000FFFF, mask 1110XXXX
 	                                // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
-	                                $utf8 .= substr((string) $chrs, $c, 3);
+	                                $utf8 .= substr($chrs, $c, 3);
 	                                $c += 2;
 	                                break;
 
 	                            case ($ord_chrs_c & 0xF8) == 0xF0:
 	                                // characters U-00010000 - U-001FFFFF, mask 11110XXX
 	                                // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
-	                                $utf8 .= substr((string) $chrs, $c, 4);
+	                                $utf8 .= substr($chrs, $c, 4);
 	                                $c += 3;
 	                                break;
 
 	                            case ($ord_chrs_c & 0xFC) == 0xF8:
 	                                // characters U-00200000 - U-03FFFFFF, mask 111110XX
 	                                // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
-	                                $utf8 .= substr((string) $chrs, $c, 5);
+	                                $utf8 .= substr($chrs, $c, 5);
 	                                $c += 4;
 	                                break;
 
 	                            case ($ord_chrs_c & 0xFE) == 0xFC:
 	                                // characters U-04000000 - U-7FFFFFFF, mask 1111110X
 	                                // see http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
-	                                $utf8 .= substr((string) $chrs, $c, 6);
+	                                $utf8 .= substr($chrs, $c, 6);
 	                                $c += 5;
 	                                break;
 
@@ -731,7 +732,7 @@ if(!class_exists('Services_JSON')) {
 	                                // for now
 	                                $parts = [];
                                 
-	                                if (preg_match('/^\s*(["\'].*[^\\\]["\'])\s*:\s*(\S.*),?$/Uis', (string) $slice, $parts)) {
+	                                if (preg_match('/^\s*(["\'].*[^\\\]["\'])\s*:\s*(\S.*),?$/Uis', $slice, $parts)) {
 	                                    // "name":value pair
 	                                    $key = $this->decode($parts[1]);
 	                                    $val = $this->decode($parts[2]);
@@ -741,7 +742,7 @@ if(!class_exists('Services_JSON')) {
 	                                    } else {
 	                                        $obj->$key = $val;
 	                                    }
-	                                } elseif (preg_match('/^\s*(\w+)\s*:\s*(\S.*),?$/Uis', (string) $slice, $parts)) {
+	                                } elseif (preg_match('/^\s*(\w+)\s*:\s*(\S.*),?$/Uis', $slice, $parts)) {
 	                                    // name:value pair, where name is unquoted
 	                                    $key = $parts[1];
 	                                    $val = $this->decode($parts[2]);
@@ -842,7 +843,8 @@ if(!class_exists('Services_JSON')) {
 
 	if (class_exists('PEAR_Error')) {
 
-	    class Services_JSON_Error extends PEAR_Error
+	    #[\AllowDynamicProperties]
+        class Services_JSON_Error extends PEAR_Error
 	    {
 	        function Services_JSON_Error($message = 'unknown error', $code = null,
 	                                     $mode = null, $options = null, $userinfo = null)
@@ -856,7 +858,8 @@ if(!class_exists('Services_JSON')) {
 	    /**
 	     * @todo Ultimately, this class shall be descended from PEAR_Error
 	     */
-	    class Services_JSON_Error
+	    #[\AllowDynamicProperties]
+        class Services_JSON_Error
 	    {
 	        function Services_JSON_Error($message = 'unknown error', $code = null,
 	                                     $mode = null, $options = null, $userinfo = null)

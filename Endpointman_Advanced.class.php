@@ -10,6 +10,7 @@
 namespace FreePBX\modules;
 use FreePBX;
 
+#[\AllowDynamicProperties]
 class Endpointman_Advanced
 {
     public $MODULES_PATH;
@@ -112,7 +113,6 @@ class Endpointman_Advanced
 						$ret[] = ['id' => $item['id'], 'oui' => $item['oui'], 'brand' => $item['name'], 'custom' => $item['custom']];
 					}
 					return $ret;
-					break;
 
 				case "oui_add":
 					$retarr = $this->epm_advanced_oui_add();
@@ -177,7 +177,6 @@ class Endpointman_Advanced
 						$this->epm_advanced_iedl_import();
 						echo "<br /><hr><br />";
 						exit;
-						break;
 				}
 				break;
 
@@ -187,24 +186,20 @@ class Endpointman_Advanced
 						$this->epm_advanced_manual_upload_export_brans_available();
 						echo "<br /><hr><br />";
 						exit;
-						break;
 
 					case "export_brands_availables_file":
 						$this->epm_advanced_manual_upload_export_brans_available_file();
 						exit;
-						break;
 
 					case "upload_brand":
 						$this->epm_advanced_manual_upload_brand();
 						echo "<br /><hr><br />";
 						exit;
-						break;
 
 					case "upload_provisioner":
 						$this->epm_advanced_manual_upload_provisioner();
 						echo "<br /><hr><br />";
 						exit;
-						break;
 				}
 				break;
 		}
@@ -567,7 +562,6 @@ class Endpointman_Advanced
 				$product_select = $dget['product_select'];
 				$save_as_name_value = $filename;
 				$original_name = $filename;
-				$filename =  $filename;
 				$location = $pathfile;
 				$config_data = $contents;
 			}
@@ -645,22 +639,6 @@ class Endpointman_Advanced
 
 			//DEBUGGGGGGGGGGGGG
 			return;
-			if ($dget['type_file'] == "sql") {
-				$sql = "SELECT cfg_dir,directory,config_files FROM endpointman_product_list,endpointman_brand_list WHERE endpointman_product_list.brand = endpointman_brand_list.id AND endpointman_product_list.id = '" . $dget['product_select'] . "'";
-				$row = sql($sql, 'getrow', DB_FETCHMODE_ASSOC);
-				$this->submit_config($row['directory'], $row['cfg_dir'], $dget['original_name'], $dget['config_text']);
-				$retarr = ["status" => true, "message" => "Sent! Thanks :-)"];
-			}
-			elseif ($dget['type_file'] == "file") {
-				$sql = "SELECT cfg_dir,directory,config_files FROM endpointman_product_list,endpointman_brand_list WHERE endpointman_product_list.brand = endpointman_brand_list.id AND endpointman_product_list.id = '" . $dget['product_select'] . "'";
-				$row = sql($sql, 'getRow', DB_FETCHMODE_ASSOC);
-				$error = $this->submit_config($row['directory'], $row['cfg_dir'], $dget['original_name'], $dget['config_text']);
-				$retarr = ["status" => true, "message" => "Sent! Thanks :-)"];
-			}
-			else {
-				$retarr = ["status" => false, "message" => "Type not valid!"];
-			}
-			unset ($dget);
 		}
 		return $retarr;
 	}
@@ -1044,8 +1022,6 @@ class Endpointman_Advanced
 				readfile($path_tmp_file);
 				exit;
 			}
-			unset ($path_tmp_file);
-			unset ($dget);
 		}
 		exit;
 	}
@@ -1268,8 +1244,7 @@ FreePBX::Endpointman()->add_device($mac, $model_id, $ext, 0, $line_id, $descript
     	$contents = str_replace("&lt;", "&amp;lt;", $contents);
     	$contents = str_replace("&gt;", "&amp;gt;", $contents);
     	$contents = str_replace("&quot;", "&amp;quot;", $contents);
-    	$contents = str_replace("&#039;", "&amp;#039;", $contents);
-    	return($contents);
+    	return(str_replace("&#039;", "&amp;#039;", $contents));
     }
 
     /**

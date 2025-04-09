@@ -83,10 +83,9 @@
 			    for( $i = 3; $i < count( $debug_array ); $i++ )
 				   	$html .= "-" . str_replace( SITE_DIR, "", $debug_array[ $i ][ 'file' ] ?? null ) . " : " . ( $debug_array[$i]['line'] ?? null ). "<br/>\n";
 				$html .= "</div>";	   	
-			}			
-			$html .= "</div>";
+			}
 
-			return $html;
+			return $html . "</div>";
 	}
 	
 	
