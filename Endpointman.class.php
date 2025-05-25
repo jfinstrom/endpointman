@@ -57,6 +57,7 @@ class Endpointman implements \BMO {
 
     public $error; //error construct
     public $message; //message construct
+    public $pagedata = []; // Initialize pagedata
 
 	public $UPDATE_PATH;
     public $MODULES_PATH;
@@ -107,7 +108,7 @@ define("MODULES_PATH", $this->MODULES_PATH);
             $this->LOCAL_PATH = $this->MODULES_PATH . "endpointman/";
 define("LOCAL_PATH", $this->LOCAL_PATH);
         } else {
-            die("Can't Load Local Endpoint Manager Directory!");
+            throw new \Exception("Can't Load Local Endpoint Manager Directory! Path: " . $this->MODULES_PATH . "endpointman/");
         }
 
         //Define the location of phone modules, keeping it outside of the module directory so that when the user updates endpointmanager they don't lose all of their phones
@@ -122,13 +123,13 @@ define("LOCAL_PATH", $this->LOCAL_PATH);
                 unlink($this->PHONE_MODULES_PATH . "setup.php");
             }
             if (!file_exists($this->MODULES_PATH . "_ep_phone_modules/")) {
-                die('Endpoint Manager can not create the modules folder!');
+                throw new \Exception('Endpoint Manager can not create the modules folder! Path: ' . $this->MODULES_PATH . "_ep_phone_modules/");
             }
         }
 define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
 
         //Define error reporting
-        if (($this->configmod->get('debug')) AND (!isset($_REQUEST['quietmode']))) {
+        if (((int)$this->configmod->get('debug')) AND (!isset($_REQUEST['quietmode']))) {
             error_reporting(E_ALL);
             ini_set('display_errors', 1);
         } else {
@@ -243,7 +244,7 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
 
 		$arrVal['mod_sec'] = ["epm_devices","epm_oss", "epm_placeholders", "epm_templates", "epm_config", "epm_advanced"];
 		if (! in_array($page, $arrVal['mod_sec'])) {
-			die(_("Invalid section module!"));
+			throw new \InvalidArgumentException("Invalid section module! Page: " . htmlspecialchars($page));
 		}
 
 		switch ($page)
@@ -325,6 +326,7 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
 			return '';
 		else {
 			//return load_view(dirname(__FILE__).'/views/rnav.php',array());
+			$var = []; // Initialize $var
 			return load_view(__DIR__ . '/views/rnav.php', $var);
 		}
 	}
@@ -455,6 +457,7 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
      */
     function brands_available($selected = NULL, $show_blank=TRUE) {
         $data = $this->eda->all_active_brands();
+        $temp = []; // Initialize $temp
         if ($show_blank) {
             $temp[0]['value'] = "";
             $temp[0]['text'] = "";
@@ -462,15 +465,17 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
         } else {
             $i = 0;
         }
-        foreach ($data as $row) {
-            $temp[$i]['value'] = $row['id'];
-            $temp[$i]['text'] = $row['name'];
-            if ($row['id'] == $selected) {
-                $temp[$i]['selected'] = TRUE;
-            } else {
-                $temp[$i]['selected'] = NULL;
+        if (is_array($data)) { // Ensure $data is an array before looping
+            foreach ($data as $row) {
+                $temp[$i]['value'] = isset($row['id']) ? (int)$row['id'] : null; // Cast and check existence
+                $temp[$i]['text'] = isset($row['name']) ? $row['name'] : ''; // Check existence
+                if (isset($row['id']) && $selected !== NULL && (int)$row['id'] == (int)$selected) { // Cast both sides
+                    $temp[$i]['selected'] = TRUE;
+                } else {
+                    $temp[$i]['selected'] = NULL;
+                }
+                $i++;
             }
-            $i++;
         }
         return($temp);
     }
@@ -511,7 +516,7 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
         //create a simple block here incase people have strange issues going on as we will kill http
         //by running this if the server isn't really running!
         $sql = 'SELECT value FROM endpointman_global_vars WHERE var_name = \'tftp_check\'';
-        if (sql($sql, 'getOne') != 1) {
+        if ((int)sql($sql, 'getOne') != 1) {
             $sql = 'UPDATE endpointman_global_vars SET value = \'1\' WHERE var_name = \'tftp_check\'';
             sql($sql);
             $subject = shell_exec("netstat -luan --numeric-ports");
@@ -520,12 +525,10 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
                 if (file_put_contents($this->configmod->get('config_location') . 'TEST', $rand)) {
                     if ($this->system->tftp_fetch('127.0.0.1', 'TEST') != $rand) {
                         $this->error['tftp_check'] = 'Local TFTP Server is not correctly configured';
-echo 'Local TFTP Server is not correctly configured';
                     }
                     unlink($this->configmod->get('config_location') . 'TEST');
                 } else {
                     $this->error['tftp_check'] = 'Unable to write to ' . $this->configmod->get('config_location');
-echo 'Unable to write to ' . $this->configmod->get('config_location');
                 }
             } else {
                 $dis = FALSE;
@@ -533,20 +536,17 @@ echo 'Unable to write to ' . $this->configmod->get('config_location');
                     $contents = file_get_contents('/etc/xinetd.d/tftp');
                     if (preg_match('/disable.*=.*yes/i', $contents)) {
                         $this->error['tftp_check'] = 'Disabled is set to "yes" in /etc/xinetd.d/tftp. Please fix <br />Then restart your TFTP service';
-echo 'Disabled is set to "yes" in /etc/xinetd.d/tftp. Please fix <br />Then restart your TFTP service';
                         $dis = TRUE;
                     }
                 }
                 if (!$dis) {
                     $this->error['tftp_check'] = 'TFTP Server is not running. <br />See here for instructions on how to install one: <a href="http://wiki.provisioner.net/index.php/Tftp" target="_blank">http://wiki.provisioner.net/index.php/Tftp</a>';
-echo 'TFTP Server is not running. <br />See here for instructions on how to install one: <a href="http://wiki.provisioner.net/index.php/Tftp" target="_blank">http://wiki.provisioner.net/index.php/Tftp</a>';
                 }
             }
             $sql = 'UPDATE endpointman_global_vars SET value = \'0\' WHERE var_name = \'tftp_check\'';
             sql($sql);
         } else {
             $this->error['tftp_check'] = 'TFTP Server check failed on last past. Skipping';
-echo 'TFTP Server check failed on last past. Skipping';
         }
     }
 
@@ -568,7 +568,13 @@ echo 'TFTP Server check failed on last past. Skipping';
     	fclose($fp);
     	$file_name_with_full_path = $this->LOCAL_PATH . "data.txt";
 
-    	$postvars = ['brand' => $brand, 'product' => $product, 'origname' => htmlentities(addslashes((string) $orig_name)), 'file_contents' => '@' . $file_name_with_full_path];
+    	// Use CURLFile for PHP 5.5+
+    	$postvars = [
+    		'brand' => $brand,
+    		'product' => $product,
+    		'origname' => htmlentities(addslashes((string) $orig_name)),
+    		'file_contents' => new \CURLFile($file_name_with_full_path, mime_content_type($file_name_with_full_path), basename($file_name_with_full_path))
+    	];
 
     	$ch = curl_init($posturl);
     	curl_setopt($ch, CURLOPT_POST, 1);
@@ -776,8 +782,13 @@ echo 'TFTP Server check failed on last past. Skipping';
     		$line['line'] = 0;
     	}
 
+		$temp = []; // Initialize $temp
     	$max_lines = sql($sql, 'getOne');
     	$lines_used = sql($sql_lu, 'getAll');
+
+		if ($max_lines === null || $max_lines < 1) { // Ensure $max_lines is not null and positive
+			return FALSE;
+		}
 
     	for ($i = 1; $i <= $max_lines; $i++) {
     		if ($i == $line['line']) {
@@ -785,13 +796,14 @@ echo 'TFTP Server check failed on last past. Skipping';
     			$temp[$i]['text'] = $i;
     			$temp[$i]['selected'] = "selected";
     		} else {
-    			if (!$this->in_array_recursive($i, $lines_used)) {
+    			// Ensure $lines_used is an array before calling in_array_recursive
+    			if (!is_array($lines_used) || !$this->in_array_recursive($i, $lines_used)) {
     				$temp[$i]['value'] = $i;
     				$temp[$i]['text'] = $i;
     			}
     		}
     	}
-    	if (isset($temp)) {
+    	if (!empty($temp)) { // Check if $temp is not empty instead of just isset
     		return($temp);
     	} else {
     		return FALSE;
@@ -816,16 +828,18 @@ echo 'TFTP Server check failed on last past. Skipping';
     	}
 
     	$i = 1;
-    	$temp = array();
-    	foreach ($result as $row) {
-    		$temp[$i]['value'] = $row['id'];
-    		$temp[$i]['text'] = $row['id'] . " --- " . $row['description'];
-    		$i++;
-    	}
+    	$temp = array(); // Initialize $temp
+		if(!empty($result) && is_array($result)) { // Check if $result is not empty and is an array
+			foreach ($result as $row) {
+				$temp[$i]['value'] = isset($row['id']) ? $row['id'] : null;
+				$temp[$i]['text'] = (isset($row['id']) ? $row['id'] : '') . " --- " . (isset($row['description']) ? $row['description'] : '');
+				$i++;
+			}
+		}
 
-    	if (isset($line_data)) {
-    		$temp[$i]['value'] = $line_data['ext'];
-    		$temp[$i]['text'] = $line_data['ext'] . " --- " . $line_data['description'];
+    	if (isset($line_data) && is_array($line_data)) { // Check if $line_data is an array
+    		$temp[$i]['value'] = isset($line_data['ext']) ? $line_data['ext'] : null;
+    		$temp[$i]['text'] = (isset($line_data['ext']) ? $line_data['ext'] : '') . " --- " . (isset($line_data['description']) ? $line_data['description'] : '');
     		$temp[$i]['selected'] = "selected";
     	}
 

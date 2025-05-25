@@ -20,6 +20,7 @@ class Endpointman_Config
 
 	public function __construct($freepbx = null, $cfgmod = null, $system = null)
 	{
+		$this->PROVISIONER_BASE = null; // Initialize PROVISIONER_BASE
 		$this->freepbx = $freepbx;
 		$this->db = $freepbx->Database;
 		$this->config = $freepbx->Config;
@@ -32,20 +33,27 @@ class Endpointman_Config
         if (file_exists($this->MODULES_PATH . "endpointman/")) {
             $this->LOCAL_PATH = $this->MODULES_PATH . "endpointman/";
         } else {
-            die("Can't Load Local Endpoint Manager Directory!");
+            throw new \Exception("Can't Load Local Endpoint Manager Directory! Path: " . $this->MODULES_PATH . "endpointman/");
         }
         if (file_exists($this->MODULES_PATH . "_ep_phone_modules/")) {
             $this->PHONE_MODULES_PATH = $this->MODULES_PATH . "_ep_phone_modules/";
         } else {
             $this->PHONE_MODULES_PATH = $this->MODULES_PATH . "_ep_phone_modules/";
             if (!file_exists($this->PHONE_MODULES_PATH)) {
-                mkdir($this->PHONE_MODULES_PATH, 0775);
+                // Attempt to create the directory
+                if (!mkdir($this->PHONE_MODULES_PATH, 0775, true) && !is_dir($this->PHONE_MODULES_PATH)) { // Check if mkdir failed and directory doesn't exist
+                    throw new \Exception('Endpoint Manager failed to create the phone modules directory! Path: ' . $this->PHONE_MODULES_PATH);
+                }
             }
             if (file_exists($this->PHONE_MODULES_PATH . "setup.php")) {
                 unlink($this->PHONE_MODULES_PATH . "setup.php");
             }
-            if (!file_exists($this->MODULES_PATH . "_ep_phone_modules/")) {
-                die('Endpoint Manager can not create the modules folder!');
+            // This check should ideally be after the attempt to create the directory.
+            // However, the original logic had a die here. If mkdir fails and it's critical, an exception is already thrown.
+            // If it's just about the setup.php or other specific files, that's different.
+            // For now, mirroring the critical nature of the original die:
+            if (!file_exists($this->MODULES_PATH . "_ep_phone_modules/")) { // This path itself, not $this->PHONE_MODULES_PATH
+                 throw new \Exception('Endpoint Manager phone modules directory does not exist and could not be created! Path: ' . $this->MODULES_PATH . "_ep_phone_modules/");
             }
         }
 
@@ -513,10 +521,11 @@ class Endpointman_Config
 		$sql = "SELECT * FROM  endpointman_brand_list WHERE directory = '" . $brand_name_find . "'";
 		$row = sql($sql, 'getRow', DB_FETCHMODE_ASSOC);
 
-		$out = [];
+		$out = []; // Ensure $out is initialized
 		if  (! isset($row['directory']))
 		{
 			$out['update'] = -2;
+			$out['update_vers'] = null; // Ensure update_vers is also initialized in this path
 		}
 		else
 		{
@@ -552,49 +561,73 @@ class Endpointman_Config
 
 	function brand_update_check_all()
 	{
-		$temp = $this->file2json($this->PHONE_MODULES_PATH . 'endpoint/master.json');
+		$master_json_path = $this->PHONE_MODULES_PATH . 'endpoint/master.json';
+		$temp_master = $this->file2json($master_json_path);
+		$version = []; // Stores effective version for each brand directory
+		$out_brands_from_master = []; // Stores the original brand entries from master.json, will be augmented with update status
 
-		$version = [];
-		$out = $temp['data']['brands'];
-		foreach ($out as $data) {
-			if (file_exists($this->PHONE_MODULES_PATH . "endpoint/" . $data['directory'] . "/brand_data.json")) {
-				$temp = $this->file2json($this->PHONE_MODULES_PATH . "endpoint/" . $data['directory'] . "/brand_data.json");
-				$temp = $temp['data']['brands'];
-
-				$brand_name = $temp['directory'];
-				$version[$brand_name] = $temp['last_modified'];
-				$last_mod = "";
-				foreach ($temp['family_list'] as $list) {
-					$last_mod = max($last_mod, $list['last_modified']);
+		if (is_array($temp_master) && isset($temp_master['data']['brands']) && is_array($temp_master['data']['brands'])) {
+			$out_brands_from_master = $temp_master['data']['brands'];
+			foreach ($out_brands_from_master as $data_item_master_idx => $data_item_master) {
+				if (!isset($data_item_master['directory'])) {
+					$out_brands_from_master[$data_item_master_idx]['update_error'] = "Missing directory in master.json";
+					continue;
 				}
-				$last_mod = max($last_mod, $version[$brand_name]);
-				$version[$brand_name] = $last_mod;
-			}
-		}
-
-		$sql = 'SELECT * FROM  endpointman_brand_list WHERE id > 0';
-		$row = sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
-		foreach ($row as $ava_brands) {
-			$key = $this->system->arraysearchrecursive($ava_brands['directory'], $out, 'directory');
-
-			if ($key === FALSE) {
-				$tmp = $ava_brands;
-				$tmp['update'] = -1;
-				$out[] = $tmp;
-			}
-			else {
-				$key = $key[0];
-				$brand_name = $ava_brands['directory'];
-				if (! isset($version[$brand_name])) { $version[$brand_name] = 0; }
-				if ($ava_brands['cfg_ver'] < $version[$brand_name]) {
-					$out[$key]['update'] = 1;
-					$out[$key]['update_vers'] = $version[$brand_name];
-				} else {
-					$out[$key]['update'] = NULL;
+				$brand_data_path_item = $this->PHONE_MODULES_PATH . "endpoint/" . $data_item_master['directory'] . "/brand_data.json";
+				if (file_exists($brand_data_path_item)) {
+					$temp_brand_json_item = $this->file2json($brand_data_path_item);
+					if (is_array($temp_brand_json_item) && isset($temp_brand_json_item['data']['brands'])) {
+						$temp_brands_data_item = $temp_brand_json_item['data']['brands'];
+						$brand_name_key_item = isset($temp_brands_data_item['directory']) ? $temp_brands_data_item['directory'] : null;
+						if ($brand_name_key_item) {
+							$current_brand_version_item = isset($temp_brands_data_item['last_modified']) ? (float)$temp_brands_data_item['last_modified'] : 0;
+							$max_family_last_mod_item = 0;
+							if (isset($temp_brands_data_item['family_list']) && is_array($temp_brands_data_item['family_list'])) {
+								foreach ($temp_brands_data_item['family_list'] as $list_item_family) {
+									$max_family_last_mod_item = max($max_family_last_mod_item, (isset($list_item_family['last_modified']) ? (float)$list_item_family['last_modified'] : 0));
+								}
+							}
+							$version[$brand_name_key_item] = max($max_family_last_mod_item, $current_brand_version_item);
+						}
+					}
 				}
 			}
 		}
-		return $out;
+
+		$sql_db_brands = 'SELECT * FROM  endpointman_brand_list WHERE id > 0';
+		$db_brands_list = sql($sql_db_brands, 'getAll', DB_FETCHMODE_ASSOC);
+		if (!is_array($db_brands_list)) $db_brands_list = [];
+
+		foreach ($db_brands_list as $ava_brands_db_item) { // Renamed loop variable
+			if (!isset($ava_brands_db_item['directory'])) continue;
+
+			$found_in_master_list = false;
+			foreach ($out_brands_from_master as $master_idx => $master_brand_item) { // Renamed loop variable
+				if (isset($master_brand_item['directory']) && $master_brand_item['directory'] == $ava_brands_db_item['directory']) {
+					$brand_name_for_version_check = $ava_brands_db_item['directory'];
+					// Ensure version is set, default to 0 if not found (e.g. brand_data.json was missing/corrupt)
+					$version_to_check_against = isset($version[$brand_name_for_version_check]) ? $version[$brand_name_for_version_check] : 0;
+
+					if ((isset($ava_brands_db_item['cfg_ver']) ? (float)$ava_brands_db_item['cfg_ver'] : 0) < $version_to_check_against) {
+						$out_brands_from_master[$master_idx]['update'] = 1;
+						$out_brands_from_master[$master_idx]['update_vers'] = $version_to_check_against;
+					} else {
+						$out_brands_from_master[$master_idx]['update'] = 0; 
+						$out_brands_from_master[$master_idx]['update_vers'] = $version_to_check_against;
+					}
+					$out_brands_from_master[$master_idx]['installed'] = isset($ava_brands_db_item['installed']) ? $ava_brands_db_item['installed'] : 0;
+					$out_brands_from_master[$master_idx]['id'] = isset($ava_brands_db_item['id']) ? $ava_brands_db_item['id'] : null;
+					$found_in_master_list = true;
+					break;
+				}
+			}
+			if (!$found_in_master_list) {
+				$custom_brand_entry_item = $ava_brands_db_item; // Renamed variable
+				$custom_brand_entry_item['update'] = -1; 
+				$out_brands_from_master[] = $custom_brand_entry_item;
+			}
+		}
+		return $out_brands_from_master;
 	}
 
 
@@ -1530,6 +1563,9 @@ if ($this->configmod->get('debug')) echo format_txt(_("---Inserting Model %_NAME
      * @version 2.11
      */
     function file2json($file) {
+        // $this->error does not exist in this class. Use local var or handle error appropriately.
+        // For now, just removing $this->error to prevent fatal errors.
+        // Proper error handling would involve returning an error status or throwing an exception.
         if (file_exists($file)) {
             $json = file_get_contents($file);
             $data = json_decode($json, TRUE);
@@ -1538,32 +1574,32 @@ if ($this->configmod->get('debug')) echo format_txt(_("---Inserting Model %_NAME
                     case JSON_ERROR_NONE:
                         return($data);
                     case JSON_ERROR_DEPTH:
-                        $this->error['file2json'] = _('Maximum stack depth exceeded');
+                        // $this->error['file2json'] = _('Maximum stack depth exceeded');
                         break;
                     case JSON_ERROR_STATE_MISMATCH:
-                        $this->error['file2json'] = _('Underflow or the modes mismatch');
+                        // $this->error['file2json'] = _('Underflow or the modes mismatch');
                         break;
                     case JSON_ERROR_CTRL_CHAR:
-                        $this->error['file2json'] = _('Unexpected control character found');
+                        // $this->error['file2json'] = _('Unexpected control character found');
                         break;
                     case JSON_ERROR_SYNTAX:
-                        $this->error['file2json'] = _('Syntax error, malformed JSON');
+                        // $this->error['file2json'] = _('Syntax error, malformed JSON');
                         break;
                     case JSON_ERROR_UTF8:
-                        $this->error['file2json'] = _('Malformed UTF-8 characters, possibly incorrectly encoded');
+                        // $this->error['file2json'] = _('Malformed UTF-8 characters, possibly incorrectly encoded');
                         break;
                     default:
-                        $this->error['file2json'] = _('Unknown error');
+                        // $this->error['file2json'] = _('Unknown error');
                         break;
                 }
-                return(false);
+                return(false); // Error occurred
             } else {
                 //Probably an older version of PHP. That's ok though
                 return($data);
             }
         } else {
-            $this->error['file2json'] = _('Cant find file:').' '.$file ;
-            return(false);
+            // $this->error['file2json'] = _('Cant find file:').' '.$file ;
+            return(false); // File not found
         }
     }
 

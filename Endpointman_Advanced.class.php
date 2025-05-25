@@ -231,6 +231,7 @@ class Endpointman_Advanced
 
 	private function epm_advanced_settings_saveconfig ()
 	{
+		$retarr = []; // Initialize $retarr
 		$arrVal['VAR_REQUEST'] = ["name", "value"];
 		foreach ($arrVal['VAR_REQUEST'] as $valor) {
 			if (! array_key_exists($valor, $_REQUEST)) {
@@ -306,7 +307,8 @@ class Endpointman_Advanced
 							$retarr = ["status" => false, "message" => _("Directory Not Writable!")];
 						}
 					} else {
-						$retarr = ["status" => false, "message" => _("Not a Vaild Directory.<br /> Try to run 'mkdir " . $_POST['config_loc'] . "' as root.")];
+						$mkdir_cmd = isset($_POST['config_loc']) ? $_POST['config_loc'] : 'YOUR_CONFIG_PATH';
+						$retarr = ["status" => false, "message" => _("Not a Vaild Directory.<br /> Try to run 'mkdir " . $mkdir_cmd . "' as root.")];
 					}
 				} else {
 					$retarr = ["status" => false, "message" => _("No Configuration Location Defined!")];
@@ -503,6 +505,16 @@ class Endpointman_Advanced
 
 	public function epm_advanced_poce_select_file()
 	{
+		$retarr = ["status" => false, "message" => _("Unhandled file type or error.")]; // Default retarr
+		$type = '';
+		$sendidt = '';
+		$product_select = '';
+		$save_as_name_value = '';
+		$original_name = '';
+		$filename = '';
+		$location = '';
+		$config_data = '';
+
 		$arrVal['VAR_REQUEST'] = ["product_select", "file_id", "file_name", "type_file"];
 		foreach ($arrVal['VAR_REQUEST'] as $valor) {
 			if (! array_key_exists($valor, $_REQUEST)) {
@@ -532,41 +544,47 @@ class Endpointman_Advanced
 			$original_name = $row['original_name'];
 			$filename =  $row['name'];
 			$location = "SQL: ". $row['name'];
-			$config_data = $this->display_htmlspecialchars($row['data']);
+			$config_data = isset($row['data']) ? $this->display_htmlspecialchars($row['data']) : '';
 
 		}
 		elseif ($dget['type_file'] == "file") {
 			$sql = "SELECT cfg_dir,directory,config_files FROM endpointman_product_list,endpointman_brand_list WHERE endpointman_product_list.brand = endpointman_brand_list.id AND endpointman_product_list.id = '" . $dget['product_select'] . "'";
 			$row = sql($sql, 'getRow', DB_FETCHMODE_ASSOC);
 
-			$config_files = explode(",", (string) $row['config_files']);
-			//TODO: Añadir validacion para ver si $dget['file_name'] esta en el array $config_files
+			if ($row) { // Check if $row is not null
+				$config_files = explode(",", (string) (isset($row['config_files']) ? $row['config_files'] : ''));
+				//TODO: Añadir validacion para ver si $dget['file_name'] esta en el array $config_files
 
-			$filename = $dget['file_name'];
-			$pathfile = $this->PHONE_MODULES_PATH . 'endpoint/' . $row['directory'] . "/" . $row['cfg_dir'] . "/" . $filename;
+				$filename = $dget['file_name'];
+				$pathfile = $this->PHONE_MODULES_PATH . 'endpoint/' . (isset($row['directory']) ? $row['directory'] : '') . "/" . (isset($row['cfg_dir']) ? $row['cfg_dir'] : '') . "/" . $filename;
 
 
-			if (is_readable($pathfile)) {
-				if(filesize($pathfile)>0) {
-					$handle = fopen($pathfile, "rb");
-					$contents = fread($handle, filesize($pathfile));
-					fclose($handle);
-					$contents = $this->display_htmlspecialchars($contents);
+				if (is_readable($pathfile)) {
+					if(filesize($pathfile)>0) {
+						$handle = fopen($pathfile, "rb");
+						$contents = fread($handle, filesize($pathfile));
+						fclose($handle);
+						$contents = $this->display_htmlspecialchars($contents);
+					}
+					else {
+						$contents = "";
+					}
+
+					$type = $dget['type_file'];
+					$sendidt = $dget['file_id'];
+					$product_select = $dget['product_select'];
+					$save_as_name_value = $filename;
+					$original_name = $filename;
+					$location = $pathfile;
+					$config_data = $contents;
+					// This assignment was missing for the "file" type if successful
+					$retarr = ["status" => true, "message" => "OK", /* other keys below */];
 				}
 				else {
-					$contents = "";
+					$retarr = ["status" => false, "message" => _("File not readable, check the permission! "). htmlspecialchars($filename)]; // Sanitize output
 				}
-
-				$type = $dget['type_file'];
-				$sendidt = $dget['file_id'];
-				$product_select = $dget['product_select'];
-				$save_as_name_value = $filename;
-				$original_name = $filename;
-				$location = $pathfile;
-				$config_data = $contents;
-			}
-			else {
-				$retarr = ["status" => false, "message" => _("File not readable, check the permission! ").$filename];
+			} else {
+				$retarr = ["status" => false, "message" => _("Product information not found for selection.")];
 			}
 		}
 		elseif ($dget['type_file'] == "tfile")
@@ -582,10 +600,10 @@ class Endpointman_Advanced
 				$sql = "SELECT * FROM endpointman_model_list WHERE id = '" . $dget['file_id'] . "'";
 				$data = sql($sql, 'getRow', DB_FETCHMODE_ASSOC);
 
-				$sendidt = $data['id'];
+				$sendidt = isset($data['id']) ? $data['id'] : '';
 				$original_name = $dget['file_name'];
-				$config_data = unserialize($data['template_data']);
-				$config_data = generate_xml_from_array ($config_data, 'node');
+				$config_data = isset($data['template_data']) ? unserialize($data['template_data']) : null;
+				$config_data = is_array($config_data) ? generate_xml_from_array ($config_data, 'node') : ''; // Ensure $config_data is an array
 			}
 
 			$type = $dget['type_file'];
@@ -593,18 +611,21 @@ class Endpointman_Advanced
 			$save_as_name_value = $dget['file_name'];
 			$filename = $dget['file_name'];
 			$location = $dget['file_name'];
+			// This assignment was missing for the "tfile" type if successful
+			$retarr = ["status" => true, "message" => "OK", /* other keys below */];
 		}
 
-		$retarr = ["status" => true,
-						"message" => "OK",
-						"type" => $type,
-						"sendidt" => $sendidt,
-						"product_select" => $product_select,
-						"save_as_name_value" => $save_as_name_value,
-						"original_name" => $original_name,
-						"filename" => $filename,
-						"location" => $location,
-						"config_data" => $config_data];
+		// Update retarr only if it was set to success in one of the branches
+		if (isset($retarr["status"]) && $retarr["status"] === true) {
+			$retarr["type"] = $type;
+			$retarr["sendidt"] = $sendidt;
+			$retarr["product_select"] = $product_select;
+			$retarr["save_as_name_value"] = $save_as_name_value;
+			$retarr["original_name"] = $original_name;
+			$retarr["filename"] = $filename;
+			$retarr["location"] = $location;
+			$retarr["config_data"] = $config_data;
+		}
 
 		unset($dget);
 		return $retarr;
@@ -651,6 +672,7 @@ class Endpointman_Advanced
 
 	function epm_advanced_poce_save_file()
 	{
+		$retarr = []; // Initialize $retarr
 		$arrVal['VAR_REQUEST'] = ["product_select", "sendid", "type_file", "config_text", "save_as_name", "file_name", "original_name"];
 		foreach ($arrVal['VAR_REQUEST'] as $valor) {
 			if (! array_key_exists($valor, $_REQUEST)) {
@@ -854,12 +876,13 @@ class Endpointman_Advanced
 
 	public function epm_advanced_manual_upload_brand()
 	{
-		if (count($_FILES["files"]["error"]) == 0) {
-			out(_("Error: Can Not Find Uploaded Files!"));
+		if (!isset($_FILES["files"]["error"]) || !is_array($_FILES["files"]["error"]) || empty($_FILES["files"]["error"])) {
+			out(_("Error: Can Not Find Uploaded Files or Invalid Files Array!"));
 		}
 		else {
 			foreach ($_FILES["files"]["error"] as $key => $error) {
-				out(sprintf(_("Importing brand file %s..."), $_FILES["files"]["name"][$key]));
+				$fileName = isset($_FILES["files"]["name"][$key]) ? $_FILES["files"]["name"][$key] : 'unknown_file';
+				out(sprintf(_("Importing brand file %s..."), $fileName));
 
 				if ($error != UPLOAD_ERR_OK) {
 					out(sprintf(_("Error: %s"), $this->file_upload_error_message($error)));
@@ -896,19 +919,19 @@ class Endpointman_Advanced
 								exec("tar -xvf ".$uploads_dir_file." -C ".$temp_directory);
 								out(_("Done!"));
 
-								$package = basename((string) $name, ".tgz");
-								$package = explode("-",$package);
+								$package_basename = basename((string) $name, ".tgz");
+								$package_parts = explode("-", $package_basename);
 
 								if ($this->configmod->get('debug')) {
-									out(sprintf(_("Looking for file %s to pass on to update_brand() ... "), $temp_directory.$package[0]));
+									out(sprintf(_("Looking for file %s to pass on to update_brand() ... "), isset($package_parts[0]) ? $temp_directory.$package_parts[0] : ''));
 								} else {
 									out(_("Looking file and update brand's ... "));
 								}
-								if(file_exists($temp_directory.$package[0])) {
-									$this->epm_config->update_brand($package[0],FALSE);
+								if(isset($package_parts[0]) && file_exists($temp_directory.$package_parts[0])) {
+									$this->epm_config->update_brand($package_parts[0],FALSE);
 									//Note: no need to delete/unlink/rmdir as this is handled in update_brand()
 								} else {
-									out(_("Please name the Package the same name as your brand!"));
+									out(_("Please name the Package the same name as your brand (e.g., brandname-version.tgz) or package parts not found after explode."));
 								}
 							}
 						}
@@ -927,13 +950,14 @@ class Endpointman_Advanced
 
 	public function epm_advanced_manual_upload_provisioner ()
 	{
-		if (count($_FILES["files"]["error"]) == 0) {
-			out(_("Error: Can Not Find Uploaded Files!"));
+		if (!isset($_FILES["files"]["error"]) || !is_array($_FILES["files"]["error"]) || empty($_FILES["files"]["error"])) {
+			out(_("Error: Can Not Find Uploaded Files or Invalid Files Array!"));
 		}
 		else
 		{
 			foreach ($_FILES["files"]["error"] as $key => $error) {
-				out(sprintf(_("Importing Provisioner file %s..."), $_FILES["files"]["name"][$key]));
+				$fileName = isset($_FILES["files"]["name"][$key]) ? $_FILES["files"]["name"][$key] : 'unknown_file';
+				out(sprintf(_("Importing Provisioner file %s..."), $fileName));
 
 				if ($error != UPLOAD_ERR_OK) {
 					out(sprintf(_("Error: %s"), $this->file_upload_error_message($error)));
@@ -966,13 +990,22 @@ class Endpointman_Advanced
 
 							if(file_exists($this->PHONE_MODULES_PATH."endpoint"))
 							{
-								$endpoint_last_mod = filemtime($this->PHONE_MODULES_PATH."temp/endpoint/base.php");
-								rename($this->PHONE_MODULES_PATH."temp/endpoint/base.php", $this->PHONE_MODULES_PATH."endpoint/base.php");
+								$base_php_temp_path = $this->PHONE_MODULES_PATH."temp/endpoint/base.php";
+								if (file_exists($base_php_temp_path)) {
+									$endpoint_last_mod = filemtime($base_php_temp_path);
+									if ($endpoint_last_mod === false) {
+										out(_("Error: Could not get modification time for temp base.php. Using current time."));
+										$endpoint_last_mod = time();
+									}
+									rename($base_php_temp_path, $this->PHONE_MODULES_PATH."endpoint/base.php");
 
-								outn(_("Updating Last Modified... "));
-								$sql = "UPDATE endpointman_global_vars SET value = '".$endpoint_last_mod."' WHERE var_name = 'endpoint_vers'";
-								sql($sql);
-								out(_("Done!"));
+									outn(_("Updating Last Modified... "));
+									$sql = "UPDATE endpointman_global_vars SET value = '".(int)$endpoint_last_mod."' WHERE var_name = 'endpoint_vers'";
+									sql($sql);
+									out(_("Done!"));
+								} else {
+									out(_("Error: Temporary base.php not found. Cannot update last modified time."));
+								}
 							}
 
 						} else {
@@ -1083,27 +1116,31 @@ class Endpointman_Advanced
 	//Dave B's Q&D file upload security code (http://us2.php.net/manual/en/features.file-upload.php)
 	public function epm_advanced_iedl_import()
 	{
-		if (count($_FILES["files"]["error"]) == 0) {
-			out(_("Error: Can Not Find Uploaded Files!"));
+		if (!isset($_FILES["files"]["error"]) || !is_array($_FILES["files"]["error"]) || empty($_FILES["files"]["error"])) {
+			out(_("Error: Can Not Find Uploaded Files or Invalid Files Array!"));
 		}
 		else
 		{
 			//$allowedExtensions = array("application/csv", "text/plain", "text/csv", "application/vnd.ms-excel");
 			$allowedExtensions = ["csv", "txt"];
 			foreach ($_FILES["files"]["error"] as $key => $error) {
-				outn(sprintf(_("Importing CSV file %s ...<br />"), $_FILES["files"]["name"][$key]));
+				$fileName = isset($_FILES["files"]["name"][$key]) ? $_FILES["files"]["name"][$key] : 'unknown_file';
+				outn(sprintf(_("Importing CSV file %s ...<br />"), $fileName));
 
 				if ($error != UPLOAD_ERR_OK) {
 					out(sprintf(_("Error: %s"), $this->file_upload_error_message($error)));
 				}
 				else
 				{
+					$currentFileName = isset($_FILES["files"]["name"][$key]) ? (string)$_FILES["files"]["name"][$key] : '';
+					$currentFileSize = isset($_FILES["files"]["size"][$key]) ? $_FILES["files"]["size"][$key] : 0;
+
 					//if (!in_array($_FILES["files"]["type"][$key], $allowedExtensions)) {
-					if (!in_array(substr(strrchr((string) $_FILES["files"]["name"][$key], "."), 1), $allowedExtensions)) {
-						out(sprintf(_("Error: We support only CSV and TXT files, type file %s no support!"), $_FILES["files"]["name"][$key]));
+					if (empty($currentFileName) || !in_array(strtolower(pathinfo($currentFileName, PATHINFO_EXTENSION)), $allowedExtensions)) {
+						out(sprintf(_("Error: We support only CSV and TXT files, type file %s no support!"), $currentFileName));
 					}
-					elseif ($_FILES["files"]["size"][$key] == 0) {
-						out(sprintf(_("Error: File %s size is 0!"), $_FILES["files"]["name"][$key]));
+					elseif ($currentFileSize == 0) {
+						out(sprintf(_("Error: File %s size is 0!"), $currentFileName));
 					}
 					else {
 						$uploadfile = $this->LOCAL_PATH . basename((string) $_FILES["files"]["name"][$key]);
@@ -1114,46 +1151,55 @@ class Endpointman_Advanced
 							$handle = fopen($uploadfile, "r");
 							$i = 1;
 							while (($device = fgetcsv($handle, filesize($uploadfile))) !== FALSE) {
-								if ($device[0] != "") {
+								if (isset($device[0]) && $device[0] != "") {
 									if ($mac = $this->mac_check_clean($device[0])) {
-										$sql = "SELECT id FROM endpointman_brand_list WHERE name LIKE '%" . $device[1] . "%' LIMIT 1";
-										//$res = sql($sql);
+										$brand_name_csv = isset($device[1]) ? $device[1] : null;
+										$model_csv = isset($device[2]) ? $device[2] : null;
+										$extension_csv = isset($device[3]) ? $device[3] : null;
+										$line_id_csv = isset($device[4]) ? $device[4] : 1;
+
+										if (!$brand_name_csv || !$model_csv || !$extension_csv) {
+											out(sprintf(_("Error: Missing data in CSV on line %d (Brand, Model, or Extension is empty)!"), $i));
+											$i++;
+											continue;
+										}
+
+										$sql = "SELECT id FROM endpointman_brand_list WHERE name LIKE '%" . $this->db->escapeSimple($brand_name_csv) . "%' LIMIT 1";
 										$res = sql($sql, 'getAll', DB_FETCHMODE_ASSOC);
 
 										if (count($res) > 0) {
 											$brand_id = sql($sql, 'getOne');
-										//	$brand_id = $brand_id[0];
 
-											$sql_model = "SELECT id FROM endpointman_model_list WHERE brand = " . $brand_id . " AND model LIKE '%" . $device[2] . "%' LIMIT 1";
-											$sql_ext = "SELECT extension, name FROM users WHERE extension LIKE '%" . $device[3] . "%' LIMIT 1";
+											$sql_model = "SELECT id FROM endpointman_model_list WHERE brand = " . (int)$brand_id . " AND model LIKE '%" . $this->db->escapeSimple($model_csv) . "%' LIMIT 1";
+											$sql_ext = "SELECT extension, name FROM users WHERE extension LIKE '%" . $this->db->escapeSimple($extension_csv) . "%' LIMIT 1";
+											
+											$line_id = (int)$line_id_csv;
 
-											$line_id = $device[4] ?? 1;
-
-											$res_model = sql($sql_model);
+											$res_model = sql($sql_model,'getAll', DB_FETCHMODE_ASSOC); // Ensure result is array for count
 											if (count($res_model)) {
-												$model_id = sql($sql_model, 'getRow', DB_FETCHMODE_ASSOC);
-												$model_id = $model_id['id'];
+												$model_id_row = sql($sql_model, 'getRow', DB_FETCHMODE_ASSOC);
+												$model_id = $model_id_row['id'];
 
-												$res_ext = sql($sql_ext);
+												$res_ext = sql($sql_ext,'getAll', DB_FETCHMODE_ASSOC); // Ensure result is array for count
 												if (count($res_ext)) {
-													$ext = sql($sql_ext, 'getRow', DB_FETCHMODE_ASSOC);
-													$description = $ext['name'];
-													$ext = $ext['extension'];
+													$ext_row = sql($sql_ext, 'getRow', DB_FETCHMODE_ASSOC);
+													$description = $ext_row['name'];
+													$ext = $ext_row['extension'];
 //TODO: PENDIENTE ASIGNAR OBJ
 FreePBX::Endpointman()->add_device($mac, $model_id, $ext, 0, $line_id, $description);
 
 													//out(_("Done!"));
 												} else {
-													out(sprintf(_("Error: Invalid Extension Specified on line %d!"), $i));
+													out(sprintf(_("Error: Invalid Extension ('%s') Specified on line %d!"), htmlspecialchars($extension_csv), $i));
 												}
 											} else {
-												out(sprintf(_("Error: Invalid Model Specified on line %d!"), $i));
+												out(sprintf(_("Error: Invalid Model ('%s') Specified for brand '%s' on line %d!"), htmlspecialchars($model_csv), htmlspecialchars($brand_name_csv), $i));
 											}
 										} else {
-											out(sprintf(_("Error: Invalid Brand Specified on line %d!"), $i));
+											out(sprintf(_("Error: Invalid Brand ('%s') Specified on line %d!"), htmlspecialchars($brand_name_csv), $i));
 										}
 									} else {
-										out(sprintf(_("Error: Invalid Mac on line %d!"), $i));
+										out(sprintf(_("Error: Invalid Mac ('%s') on line %d!"), htmlspecialchars(isset($device[0]) ? $device[0] : ''), $i));
 									}
 								}
 								$i++;
@@ -1271,7 +1317,7 @@ FreePBX::Endpointman()->add_device($mac, $model_id, $ext, 0, $line_id, $descript
      * @return mixed The cleaned up MAC is it was a MAC or False if not a mac
      */
     function mac_check_clean($mac) {
-    	if ((strlen($mac) == "17") OR (strlen($mac) == "12")) {
+    	if ((strlen($mac) == 17) OR (strlen($mac) == 12)) { // Cast string "17" and "12" to int
     		//It might be better to use switch here instead of these IF statements...
     		//Is the mac separated by colons(:) or dashes(-)?
     		if (preg_match("/[0-9a-f][0-9a-f][:-]" .
@@ -1282,7 +1328,7 @@ FreePBX::Endpointman()->add_device($mac, $model_id, $ext, 0, $line_id, $descript
     				"[0-9a-f][0-9a-f]/i", $mac)) {
     				return(strtoupper(str_replace(":", "", str_replace("-", "", $mac))));
     				//Is the string exactly 12 characters?
-    		} elseif (strlen($mac) == "12") {
+    		} elseif (strlen($mac) == 12) { // Cast string "12" to int
     			//Now is the string a valid HEX mac address?
     			if (preg_match("/[0-9a-f][0-9a-f]" .
     					"[0-9a-f][0-9a-f]" .
