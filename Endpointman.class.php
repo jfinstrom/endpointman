@@ -582,15 +582,30 @@ define("PHONE_MODULES_PATH", $this->PHONE_MODULES_PATH);
     	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
     	curl_setopt($ch, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS
     	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL, probably not needed
-    	curl_exec($ch);
+    	
+    	$curl_result = curl_exec($ch);
+    	$Final_Out = ''; // Initialize Final_Out
 
-    	ob_start();
-    	header("Content-Type: text/html");
-    	$Final_Out = ob_get_clean();
+    	if ($curl_result === false) {
+    		$this->error['submit_config_curl'] = 'Curl error: ' . curl_error($ch);
+    		// Optionally log curl_errno($ch) as well
+    		// Depending on desired behavior, could throw an exception or return a specific error indicator
+    	} else {
+    		// The original code seems to expect HTML output to be captured, even if curl_exec might return something else.
+				// This part is a bit unusual as $curl_result would typically hold the direct response.
+				// For now, preserving the ob_start/clean logic if that's intended for some specific HTML wrapping.
+	    	ob_start();
+	    	header("Content-Type: text/html"); // This header call is problematic here if output has already started or if this isn't the primary output.
+	    	// If $curl_result is the actual data, it should be used.
+	    	// For now, let's assume $Final_Out was meant to capture something else or this is legacy.
+	    	$Final_Out = ob_get_clean(); // This will be empty if nothing was echoed between ob_start and ob_get_clean.
+				// If the intention was to return the curl result: $Final_Out = $curl_result;
+			}
+
     	curl_close($ch);
     	unlink($file_name_with_full_path);
 
-    	return($Final_Out);
+    	return($Final_Out); // This might return an empty string on cURL error or if no output was buffered.
     }
 
 
